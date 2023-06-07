@@ -1,5 +1,16 @@
 
 
+/*
+	Reserved Region
+
+	FAT Region
+
+	File and Directory Region
+
+
+*/
+
+#pragma pack(1)
 typedef struct _FAT32_BOOT_SECTOR {
 	UCHAR	BS_jmpBoot[3];				/* 0 */
 	UCHAR	BS_OEMName[8];				/* 3 */
@@ -31,7 +42,7 @@ typedef struct _FAT32_BOOT_SECTOR {
 	UCHAR	Reserved[420];				/* 90 */
 	UCHAR	Signature[2];				/* 510 */
 }FAT32_BOOT_SECTOR, *PFAT32_BOOT_SECTOR;
-
+#pragma pack()
 
 
 
