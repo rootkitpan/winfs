@@ -24,12 +24,12 @@ typedef struct _FAT32_BOOT_SECTOR {
 	USHORT	BPB_FATSz16;				/* 22 */
 	USHORT	BPB_SecPerTrk;				/* 24 */
 	USHORT	BPB_NumHeads;				/* 26 */
-	ULONG	BPB_HiddSec;				/* 28 */
-	ULONG	BPB_TotSec32;				/* 32 */
-	ULONG	BPB_FatSz32;				/* 36 */
+	ULONG32	BPB_HiddSec;				/* 28 */
+	ULONG32	BPB_TotSec32;				/* 32 */
+	ULONG32	BPB_FatSz32;				/* 36 */
 	USHORT	BPB_ExtFlags;				/* 40 */
 	USHORT	BPB_FSVer;					/* 42 */
-	ULONG	BPB_RootClus;				/* 44 */
+	ULONG32	BPB_RootClus;				/* 44 */
 	USHORT	BPB_FSInfo;					/* 48 */
 	USHORT	BPB_BkBootSec;				/* 50 */
 	UCHAR	BPB_Reserved[12];			/* 52 */
@@ -42,6 +42,27 @@ typedef struct _FAT32_BOOT_SECTOR {
 	UCHAR	Reserved[420];				/* 90 */
 	UCHAR	Signature[2];				/* 510 */
 }FAT32_BOOT_SECTOR, *PFAT32_BOOT_SECTOR;
+
+
+
+
+
+
+
+#define FAT32_FSI_LEADSIG		(0x41615252)
+#define FAT32_FSI_STRUCSIG		(0x61417272)
+#define FAT32_FSI_TRAILSIG		(0xAA550000)
+
+typedef struct _FAT32_FSINFO_SECTOR {
+	ULONG32	FSI_LeadSig;				/* 0 */
+	UCHAR	FSI_Reserved1[480];			/* 4 */
+	ULONG32	FSI_StrucSig;				/* 484 */
+	ULONG32	FSI_Free_Count;				/* 488 */
+	ULONG32	FSI_Nxt_Free;				/* 492 */
+	UCHAR	FSI_Reserved2[12];			/* 496 */
+	ULONG32	FSI_TrailSig;				/* 508 */
+} FAT32_FSINFO_SECTOR, * PFAT32_FSINFO_SECTOR;
+
 #pragma pack()
 
 
