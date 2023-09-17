@@ -2,90 +2,80 @@
 
 LONG FatIsBootSectorFat(PFAT32_BOOT_SECTOR BootSector)
 {
-	if ( ((BootSector->Jump[0] != 0xEB) && (BootSector->Jump[2] != 0x90)) ||
-		(BootSector->Jump[0] != 0xE9) 
+	if ( ((BootSector->BS_jmpBoot[0] != 0xEB) && (BootSector->BS_jmpBoot[2] != 0x90)) ||
+		(BootSector->BS_jmpBoot[0] != 0xE9)
 	) {
 		DbgPrint("[Fat32] BootSector->Jump = 0x%02X 0x%02X 0x%02X\n", 
-			BootSector->Jump[0],
-			BootSector->Jump[1],
-			BootSector->Jump[2]);
+			BootSector->BS_jmpBoot[0],
+			BootSector->BS_jmpBoot[1],
+			BootSector->BS_jmpBoot[2]);
 		
 		// for debug, we may comment out return -1
 		//return -1;
 	}
 
-	if ((BootSector->BytesPerSector != 512) &&
-		(BootSector->BytesPerSector != 1024) &&
-		(BootSector->BytesPerSector != 2048) &&
-		(BootSector->BytesPerSector != 4096)
-	) {
-		DbgPrint("[Fat32] BootSector->BytesPerSector = %d\n", BootSector->BytesPerSector);
+	if ((BootSector->BPB_BytsPerSec != 512) &&
+		(BootSector->BPB_BytsPerSec != 1024) &&
+		(BootSector->BPB_BytsPerSec != 2048) &&
+		(BootSector->BPB_BytsPerSec != 4096) ) 
+	{
+		DbgPrint("[Fat32] BootSector->BytesPerSector = %d\n", BootSector->BPB_BytsPerSec);
 		return -2;
 	}
 
-	if ((BootSector->SectorsPerCluster != 1) &&
-		(BootSector->SectorsPerCluster != 2) &&
-		(BootSector->SectorsPerCluster != 4) &&
-		(BootSector->SectorsPerCluster != 8) &&
-		(BootSector->SectorsPerCluster != 16) &&
-		(BootSector->SectorsPerCluster != 32) &&
-		(BootSector->SectorsPerCluster != 64) &&
-		(BootSector->SectorsPerCluster != 128)
-		) {
+	if ((BootSector->BPB_SecPerClus != 1) &&
+		(BootSector->BPB_SecPerClus != 2) &&
+		(BootSector->BPB_SecPerClus != 4) &&
+		(BootSector->BPB_SecPerClus != 8) &&
+		(BootSector->BPB_SecPerClus != 16) &&
+		(BootSector->BPB_SecPerClus != 32) &&
+		(BootSector->BPB_SecPerClus != 64) &&
+		(BootSector->BPB_SecPerClus != 128) ) 
+	{
 		return -3;
 	}
 
-	if (BootSector->BytesPerSector * BootSector->SectorsPerCluster > 32 * 1024) {
+	if (BootSector->BPB_BytsPerSec * BootSector->BPB_SecPerClus > 32 * 1024) {
 		return -4;
 	}
 
-	if (BootSector->ReservedSectors == 0) {
+	if (BootSector->BPB_RsvdSecCnt == 0) {
 		return -5;
 	}
 
-	if (BootSector->Fats == 0) {
+	if (BootSector->BPB_NumFATs == 0) {
 		return -6;
 	}
 
-	if (BootSector->RootEntries != 0) {
+	if (BootSector->BPB_RootEntCnt != 0) {
 		// This is not Fat32
 		return -7;
 	}
 
-	if (BootSector->Sectors != 0){
+	if (BootSector->BPB_TotSec16 != 0){
 		return -8;
 	}
 
-	if ((BootSector->Media != 0xF0) &&
-		(BootSector->Media != 0xF8) &&
-		(BootSector->Media != 0xF9) &&
-		(BootSector->Media != 0xFA) &&
-		(BootSector->Media != 0xFB) &&
-		(BootSector->Media != 0xFB) &&
-		(BootSector->Media != 0xFC) &&
-		(BootSector->Media != 0xFD) &&
-		(BootSector->Media != 0xFE) &&
-		(BootSector->Media != 0xFF)
-		) {
+	if ((BootSector->BPB_Media != 0xF0) &&
+		(BootSector->BPB_Media != 0xF8) &&
+		(BootSector->BPB_Media != 0xF9) &&
+		(BootSector->BPB_Media != 0xFA) &&
+		(BootSector->BPB_Media != 0xFB) &&
+		(BootSector->BPB_Media != 0xFB) &&
+		(BootSector->BPB_Media != 0xFC) &&
+		(BootSector->BPB_Media != 0xFD) &&
+		(BootSector->BPB_Media != 0xFE) &&
+		(BootSector->BPB_Media != 0xFF) ) 
+	{
 		return -9;
 	}
 
-	if (BootSector->SectorsPerFat != 0) {
+	if (BootSector->BPB_FatSz32 != 0) {
 		// Fat32
 		return -10;
 	}
 
-	if (BootSector->LargeSectors == 0) {
-		// Fat32
-		return -11;
-	}
-
-	if (BootSector->LargeSectorsPerFat == 0) {
-		// Fat32
-		return -12;
-	}
-
-	if (BootSector->ExtendedFlags & 0x80) {
+	if (BootSector->BPB_ExtFlags & 0x80) {
 		//
 		//  If this is FAT32 (i.e., extended BPB), look for and refuse to mount
 		//  mirror-disabled volumes. If we did, we would need to only write to
@@ -95,10 +85,6 @@ LONG FatIsBootSectorFat(PFAT32_BOOT_SECTOR BootSector)
 		//  to mount such an in-transition volume.
 		//
 		return -13;
-	}
-
-	if (BootSector->FsVersion != 0) {
-		return -14;
 	}
 
 	return 0;

@@ -19,10 +19,10 @@
 typedef struct _FAT32_BOOT_SECTOR {
 	UCHAR	BS_jmpBoot[3];				/* 0 */
 	UCHAR	BS_OEMName[8];				/* 3 */
-	USHORT	BPB_BytsPerSec;				/* 11 */
-	UCHAR	BPB_SecPerClus;				/* 13 */
-	USHORT	BPB_RsvdSecCnt;				/* 14 */
-	UCHAR	BPB_NumFATs;				/* 16 */
+	USHORT	BPB_BytsPerSec;				/* 11 count of bytes per sector */
+	UCHAR	BPB_SecPerClus;				/* 13 number of sectors per cluster */
+	USHORT	BPB_RsvdSecCnt;				/* 14 number of reserved sectors */
+	UCHAR	BPB_NumFATs;				/* 16 count of FATs */
 	USHORT	BPB_RootEntCnt;				/* 17 */
 	USHORT	BPB_TotSec16;				/* 19 */
 	UCHAR	BPB_Media;					/* 21 */
@@ -30,11 +30,11 @@ typedef struct _FAT32_BOOT_SECTOR {
 	USHORT	BPB_SecPerTrk;				/* 24 */
 	USHORT	BPB_NumHeads;				/* 26 */
 	ULONG32	BPB_HiddSec;				/* 28 */
-	ULONG32	BPB_TotSec32;				/* 32 */
-	ULONG32	BPB_FatSz32;				/* 36 */
+	ULONG32	BPB_TotSec32;				/* 32 total count of sectors */
+	ULONG32	BPB_FatSz32;				/* 36 count of sectors for one FAT */
 	USHORT	BPB_ExtFlags;				/* 40 */
 	USHORT	BPB_FSVer;					/* 42 */
-	ULONG32	BPB_RootClus;				/* 44 */
+	ULONG32	BPB_RootClus;				/* 44 root directory cluster */
 	USHORT	BPB_FSInfo;					/* 48 */
 	USHORT	BPB_BkBootSec;				/* 50 */
 	UCHAR	BPB_Reserved[12];			/* 52 */

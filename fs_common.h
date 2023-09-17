@@ -5,7 +5,7 @@
 #include <ntdddisk.h>
 
 
-#include "fat32.h"
+#include "fat32disk.h"
 
 
 

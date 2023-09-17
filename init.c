@@ -79,7 +79,7 @@ NTSTATUS DriverEntry(
 
 	UNREFERENCED_PARAMETER(RegistryPath);
 
-
+	// dispatch
 	DriverObject->MajorFunction[IRP_MJ_CREATE] = Fat32Create;
 	DriverObject->MajorFunction[IRP_MJ_CREATE_NAMED_PIPE] = Fat32Common;
 	DriverObject->MajorFunction[IRP_MJ_CLOSE] = Fat32Close;
@@ -110,6 +110,7 @@ NTSTATUS DriverEntry(
 	DriverObject->MajorFunction[IRP_MJ_PNP] = Fat32Pnp;
 
 
+	// fastio
 	RtlIsZeroMemory(&Fat32FastIo, sizeof(FAST_IO_DISPATCH));
 	Fat32FastIo.SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
 	Fat32FastIo.FastIoCheckIfPossible = Fat32FastIoCheckIfPossible;
@@ -141,8 +142,10 @@ NTSTATUS DriverEntry(
 	//Fat32FastIo.ReleaseForCcFlush = Fat32FastIoReleaseForCcFlush;
 	DriverObject->FastIoDispatch = &Fat32FastIo;
 
+	//unload
 	DriverObject->DriverUnload = Fat32Unload;
 
+	// create file system device object(CDO / FsDO)
 	RtlInitUnicodeString(&DeviceName, L"\\TestFat32");
 	status = IoCreateDevice(DriverObject,
 		0,
@@ -169,7 +172,7 @@ NTSTATUS DriverEntry(
 	
 	
 	IoRegisterFileSystem(FatData.FsDO);
-	//ObReferenceObject(FatData.FsDO);
+	ObReferenceObject(FatData.FsDO);
 
 	DbgPrint("[Fat32] DriverEntry ok\n");
 
