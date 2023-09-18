@@ -1,6 +1,8 @@
 #ifndef _MEMORY_DATA_H_
 #define _MEMORY_DATA_H_
 
+#include <ntifs.h>
+
 typedef struct _FCB{
 	FSRTL_ADVANCED_FCB_HEADER VolumeFileHeader;
 	FAST_MUTEX AdvancedFcbHeaderMutex;
