@@ -5,7 +5,8 @@
 #include <ntdddisk.h>
 
 
-#include "fat32disk.h"
+#include "DiskData.h"
+#include "MemoryData.h"
 
 
 
@@ -14,26 +15,6 @@
 #define FAT_NTC_FCB ((CSHORT)0x0702)
 #define FAT_NTC_DCB ((CSHORT)0x0703)
 #define FAT_NTC_CCB ((CSHORT)0x0704)
-
-
-typedef struct _FCB{
-	FSRTL_ADVANCED_FCB_HEADER VolumeFileHeader;
-	FAST_MUTEX AdvancedFcbHeaderMutex;
-} FCB, *PFCB, DCB, *PDCB;
-
-typedef struct _VCB {
-	FSRTL_ADVANCED_FCB_HEADER VolumeFileHeader;
-	FAST_MUTEX AdvancedFcbHeaderMutex;
-
-	PFILE_OBJECT VirtualVolumeFile;
-	SECTION_OBJECT_POINTERS SectionObjectPointers;
-
-	PVPB Vpb;
-	PDEVICE_OBJECT TargetDeviceObject;
-	PDEVICE_OBJECT RealDevice;
-	
-	PDCB RootDcb;
-} VCB, * PVCB;
 
 
 typedef struct _FAT_DATA {

@@ -1,8 +1,5 @@
-#ifndef _FAT32_H_
-#define _FAT32_H_
-
-#include <ntifs.h>
-
+#ifndef _DISK_DATA_H_
+#define _DISK_DATA_H_
 
 
 /*
@@ -74,4 +71,4 @@ typedef struct _FAT32_FSINFO_SECTOR {
 
 LONG FatIsBootSectorFat(PFAT32_BOOT_SECTOR BootSector);
 
-#endif /* _FAT32_H_ */
+#endif /* _DISK_DATA_H_ */
