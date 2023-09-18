@@ -106,7 +106,6 @@ NTSTATUS Fat32MountVolume(
 	PVCB Vcb = NULL;
 	PVOID Bcb = NULL;
 	PFAT32_BOOT_SECTOR BootSector = NULL;
-	LONG lRet;
 	
 	DbgPrint("[Fat32] IRP_MN_MOUNT_VOLUME in\n");
 	
@@ -139,9 +138,9 @@ NTSTATUS Fat32MountVolume(
 		DbgPrint("[Fat32] IOCTL_DISK_GET_DRIVE_GEOMETRY failed, 0x%08x\n", status);
 		goto _PerformDeviceIoControl_Failed;
 	}
-	VolDo->SectorSize = (USHORT)Geometry.BytesPerSector;
+	VDO->SectorSize = (USHORT)Geometry.BytesPerSector;
 	
-	ClearFlag(VolDo->Flags, DO_DEVICE_INITIALIZING);
+	ClearFlag(VDO->Flags, DO_DEVICE_INITIALIZING);
 	
 	// TODO
 	Vpb->DeviceObject = VDO;
@@ -168,9 +167,9 @@ NTSTATUS Fat32MountVolume(
 		goto _Fat32MapData_Failed;
 	}
 	
-	status = IsFat32(BootSector);
+	status = Fat32CheckBootSector(BootSector);
 	if (status != STATUS_SUCCESS) {
-		DbgPrint("[Fat32] Not Fat32 Volume %d\n", lRet);
+		DbgPrint("[Fat32] Not Fat32 Volume\n");
 		goto _IsFat32_Failed;
 	}
 	
@@ -209,9 +208,9 @@ _Fat32MapData_Failed:
 	}
 _InitializeVcb_Failed:
 	ObDereferenceObject(TargetDeviceObject);
-_PerformDeviceIoControl_Failed;
+_PerformDeviceIoControl_Failed:
 	if(status != STATUS_SUCCESS){
-		IoDeleteDevice(VolDo);
+		IoDeleteDevice(VDO);
 	}
 _IoCreateDevice_Failed:
 	

@@ -65,7 +65,7 @@ FAST_IO_RELEASE_FOR_CCFLUSH Fat32FastIoReleaseForCcFlush;
 
 
 // disk io util
-NTSTATUS FatPerformDevIoCtrl(
+NTSTATUS PerformDeviceIoControl(
     ULONG IoControlCode,
     PDEVICE_OBJECT Device,
     PVOID InputBuffer,

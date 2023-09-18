@@ -1,6 +1,6 @@
 #include "fs_common.h"
 
-NTSTATUS PerformDeviceIoControl
+NTSTATUS PerformDeviceIoControl(
 	ULONG IoControlCode,
 	PDEVICE_OBJECT Device,
 	PVOID InputBuffer, ULONG InputBufferLength,
