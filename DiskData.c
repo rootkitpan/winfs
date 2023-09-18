@@ -1,11 +1,12 @@
 #include "fs_common.h"
 
-NTSTATUS IsFat32(PFAT32_BOOT_SECTOR BootSector)
+NTSTATUS Fat32CheckBootSector(PFAT32_BOOT_SECTOR BootSector)
 {
-	if ( ((BootSector->BS_jmpBoot[0] != 0xEB) && (BootSector->BS_jmpBoot[2] != 0x90)) ||
+	if ( 
+		((BootSector->BS_jmpBoot[0] != 0xEB) && (BootSector->BS_jmpBoot[2] != 0x90)) ||
 		(BootSector->BS_jmpBoot[0] != 0xE9)
 	) {
-		DbgPrint("[Fat32] BootSector->Jump = 0x%02X 0x%02X 0x%02X\n", 
+		DbgPrint("[Fat32][error] BootSector->Jump = 0x%02X 0x%02X 0x%02X\n", 
 			BootSector->BS_jmpBoot[0],
 			BootSector->BS_jmpBoot[1],
 			BootSector->BS_jmpBoot[2]);
@@ -19,7 +20,8 @@ NTSTATUS IsFat32(PFAT32_BOOT_SECTOR BootSector)
 		(BootSector->BPB_BytsPerSec != 2048) &&
 		(BootSector->BPB_BytsPerSec != 4096) ) 
 	{
-		DbgPrint("[Fat32] BootSector->BytesPerSector = %d\n", BootSector->BPB_BytsPerSec);
+		DbgPrint("[Fat32][error] BootSector->BPB_BytsPerSec = %d\n",
+			BootSector->BPB_BytsPerSec);
 		return -2;
 	}
 

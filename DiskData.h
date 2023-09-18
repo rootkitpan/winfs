@@ -4,10 +4,12 @@
 
 /*
 	Reserved Region
+		Boot Sector
 
 	FAT Region
 
 	File and Directory Region
+		Directory Entry
 */
 
 
@@ -43,11 +45,8 @@ typedef struct _FAT32_BOOT_SECTOR {
 	UCHAR	BS_FilSysType[8];			/* 82 */
 	UCHAR	Reserved[420];				/* 90 */
 	UCHAR	Signature[2];				/* 510 */
-}FAT32_BOOT_SECTOR, *PFAT32_BOOT_SECTOR;
-
-
-
-
+} FAT32_BOOT_SECTOR, *PFAT32_BOOT_SECTOR;
+#pragma pack()
 
 
 
@@ -65,10 +64,25 @@ typedef struct _FAT32_FSINFO_SECTOR {
 	ULONG32	FSI_TrailSig;				/* 508 */
 } FAT32_FSINFO_SECTOR, * PFAT32_FSINFO_SECTOR;
 
+
+#pragma pack(1)
+typedef struct _FAT32_DIRENTRY {
+	CHAR	DIR_Name[11];				/* 0 */
+	UCHAR	DIR_Attr;					/* 11 */
+	UCHAR	DIR_NTRes;					/* 12 */
+	UCHAR	DIR_CrtTimeTenth;			/* 13 */
+	USHORT	DIR_CrtTime;				/* 14 */
+	USHORT	DIR_CrtDate;				/* 16 */
+	USHORT	DIR_LstAccDate;				/* 18 */
+	USHORT	DIR_FstClusHI;				/* 20 */
+	USHORT	DIR_WrtTime;				/* 22 */
+	USHORT	DIR_WrtDate;				/* 24 */
+	USHORT	DIR_FstClusLO;				/* 26 */
+	ULONG32	DIR_FileSize;				/* 28 */
+} FAT32_DIRENTRY, *PFAT32_DIRENTRY;
 #pragma pack()
 
 
-
-LONG FatIsBootSectorFat(PFAT32_BOOT_SECTOR BootSector);
+NTSTATUS Fat32CheckBootSector(PFAT32_BOOT_SECTOR BootSector);
 
 #endif /* _DISK_DATA_H_ */
