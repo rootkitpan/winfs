@@ -6,18 +6,16 @@ static NTSTATUS InitializeVcb(
 	PVPB Vpb,
 	PDEVICE_OBJECT TargetDeviceObject)
 {
-	CC_FILE_SIZES FileSizes;
 	NTSTATUS status = STATUS_UNSUCCESSFUL;
 
 	RtlZeroMemory(Vcb, sizeof(VCB));
 
 	Vcb->VolumeFileHeader.NodeTypeCode = FAT_NTC_VCB;
 	Vcb->VolumeFileHeader.NodeByteSize = sizeof(VCB);
-	ExInitializeFastMutex(&Vcb->AdvancedFcbHeaderMutex);
-	//TODO  weizhi
-	FsRtlSetupAdvancedHeader(&Vcb->VolumeFileHeader,
-		&Vcb->AdvancedFcbHeaderMutex);
-
+	
+	Vcb->TargetDeviceObject = TargetDeviceObject;
+	Vcb->RealDevice = Vpb->RealDevice;
+	Vcb->Vpb = Vpb;
 
 	Vcb->VirtualVolumeFile = IoCreateStreamFileObject(NULL, Vpb->RealDevice);
 	if (Vcb->VirtualVolumeFile == NULL) {
@@ -33,18 +31,19 @@ static NTSTATUS InitializeVcb(
 	Vcb->VirtualVolumeFile->WriteAccess = TRUE;
 	Vcb->VirtualVolumeFile->DeleteAccess = TRUE;
 
-	FileSizes.AllocationSize.QuadPart = sizeof(FAT32_BOOT_SECTOR);
-	FileSizes.FileSize.QuadPart = sizeof(FAT32_BOOT_SECTOR);
-	FileSizes.ValidDataLength.HighPart = MAXLONG;
-	FileSizes.ValidDataLength.LowPart = MAXULONG;
-
-
 	try {
+		CC_FILE_SIZES FileSizes;
+		
+		FileSizes.AllocationSize.QuadPart = sizeof(FAT32_BOOT_SECTOR);
+		FileSizes.FileSize.QuadPart = sizeof(FAT32_BOOT_SECTOR);
+		FileSizes.ValidDataLength.HighPart = MAXLONG;
+		FileSizes.ValidDataLength.LowPart = MAXULONG;
+		
 		CcInitializeCacheMap(Vcb->VirtualVolumeFile,
-			&FileSizes,
-			TRUE,
-			&FatData.CacheManagerNoOpCallbacks,
-			Vcb);
+				&FileSizes,
+				TRUE,
+				&FatData.CacheManagerNoOpCallbacks,
+				Vcb);
 	} except(EXCEPTION_EXECUTE_HANDLER) {
 		status = GetExceptionCode();
 		DbgPrint("[Fat32] CcInitializeCacheMap abnormal 0x%08x\n", status);
@@ -52,10 +51,10 @@ static NTSTATUS InitializeVcb(
 		Vcb->VirtualVolumeFile = NULL;
 		return STATUS_UNSUCCESSFUL;
 	}
-
-	Vcb->TargetDeviceObject = TargetDeviceObject;
-	Vcb->RealDevice = Vpb->RealDevice;
-	Vcb->Vpb = Vpb;
+	
+	ExInitializeFastMutex(&Vcb->AdvancedFcbHeaderMutex);
+	FsRtlSetupAdvancedHeader(&Vcb->VolumeFileHeader,
+		&Vcb->AdvancedFcbHeaderMutex);
 
 	return STATUS_SUCCESS;
 }
@@ -108,21 +107,18 @@ NTSTATUS Fat32MountVolume(
 	PVOID Bcb = NULL;
 	PFAT32_BOOT_SECTOR BootSector = NULL;
 	LONG lRet;
-
+	
 	DbgPrint("[Fat32] IRP_MN_MOUNT_VOLUME in\n");
-
-	// create VDO
-	// set AlignmentRequirement, StackSize, SectorSize
-	// clear DO_DEVICE_INITIALIZING
-	// set Vpb->DeviceObject
+	
+	// FatScanForDismountedVcb
 	
 	status = IoCreateDevice(DeviceObject->DriverObject,
-		sizeof(VCB),
-		NULL,
-		FILE_DEVICE_DISK_FILE_SYSTEM,
-		0,
-		FALSE,
-		&VDO);
+			sizeof(VCB),
+			NULL,
+			FILE_DEVICE_DISK_FILE_SYSTEM,
+			0,
+			FALSE,
+			&VDO);
 	if (status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] IoCreateDevice failed, 0x%08x\n", status);
 		goto _IoCreateDevice_Failed;
@@ -147,7 +143,9 @@ NTSTATUS Fat32MountVolume(
 	
 	ClearFlag(VolDo->Flags, DO_DEVICE_INITIALIZING);
 	
-	// check & clear DO_VERIFY_VOLUME
+	// TODO
+	Vpb->DeviceObject = VDO;
+	
 	if (FlagOn(RealDevice->Flags, DO_VERIFY_VOLUME)) {
 		ClearFlag(RealDevice->Flags, DO_VERIFY_VOLUME);
 		WeClearedVerifyRequiredBit = TRUE;
@@ -155,35 +153,53 @@ NTSTATUS Fat32MountVolume(
 		DbgPrint("[Fat32] we cleared DO_VERIFY_VOLUME flag\n");
 	}
 	
+	ObReferenceObject(TargetDeviceObject);
+	
 	Vcb = (PVCB)VDO->DeviceExtension;
 	status = InitializeVcb(Vcb, Vpb, TargetDeviceObject);
 	if (status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] InitializeVcb failed\n");
 		goto _InitializeVcb_Failed;
 	}
-
-	//
+	
 	status = Fat32MapData(Vcb, &Bcb, &BootSector);
 	if (status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] Fat32MapData failed\n");
 		goto _Fat32MapData_Failed;
 	}
-
-	lRet = CheckBootSector(BootSector);
-	if (lRet < 0) {
+	
+	status = IsFat32(BootSector);
+	if (status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] Not Fat32 Volume %d\n", lRet);
-		goto _CheckBootSector_Failed;
+		goto _IsFat32_Failed;
 	}
-
-	// create RootDCB
+	
+	// Vpb->SerialNumber
 
 	// Unpin Data
 	CcUnpinData(Bcb);
 	
+	// TODO
+	// create RootDCB
+	
+	// VolumeLabel
+	// Vpb->VolumeLabel
+	// Vpb->VolumeLabelLength
+	
+	
+	// remount check
+	// SerialNumber
+	// RealDevice
+	// VolumeLabelLength   VolumeLabel
+	// bpb
+	
+	
+	
+	
 	status = STATUS_SUCCESS;
 	
 	
-_CheckBootSector_Failed:
+_IsFat32_Failed:
 _Fat32MapData_Failed:
 	if(status != STATUS_SUCCESS){
 		LARGE_INTEGER FatLargeZero = { 0,0 };
@@ -192,6 +208,7 @@ _Fat32MapData_Failed:
 		ObDereferenceObject(Vcb->VirtualVolumeFile);
 	}
 _InitializeVcb_Failed:
+	ObDereferenceObject(TargetDeviceObject);
 _PerformDeviceIoControl_Failed;
 	if(status != STATUS_SUCCESS){
 		IoDeleteDevice(VolDo);

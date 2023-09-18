@@ -1,6 +1,6 @@
 #include "fs_common.h"
 
-LONG FatIsBootSectorFat(PFAT32_BOOT_SECTOR BootSector)
+NTSTATUS IsFat32(PFAT32_BOOT_SECTOR BootSector)
 {
 	if ( ((BootSector->BS_jmpBoot[0] != 0xEB) && (BootSector->BS_jmpBoot[2] != 0x90)) ||
 		(BootSector->BS_jmpBoot[0] != 0xE9)
@@ -89,4 +89,6 @@ LONG FatIsBootSectorFat(PFAT32_BOOT_SECTOR BootSector)
 
 	return 0;
 }
+
+
 
