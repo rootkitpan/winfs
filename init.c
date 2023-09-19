@@ -113,7 +113,7 @@ NTSTATUS DriverEntry(
 	// fastio
 	RtlIsZeroMemory(&Fat32FastIo, sizeof(FAST_IO_DISPATCH));
 	Fat32FastIo.SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
-	Fat32FastIo.FastIoCheckIfPossible = Fat32FastIoCheckIfPossible;
+	Fat32FastIo.FastIoCheckIfPossible = FastIoCheckIfPossible;
 	//Fat32FastIo.FastIoRead = Fat32FastIoRead;
 	//Fat32FastIo.FastIoWrite = Fat32FastIoWrite;
 	//Fat32FastIo.FastIoQueryBasicInfo = Fat32FastIoQueryBasicInfo;
