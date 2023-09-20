@@ -91,17 +91,16 @@ NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR *BootSector)
 }
 
 NTSTATUS Fat32MountVolume(
-	PDEVICE_OBJECT DeviceObject,
+	PDEVICE_OBJECT DeviceObject,		// CDO
 	PIRP Irp
 )
 {
-	NTSTATUS status = STATUS_UNRECOGNIZED_VOLUME;
+	NTSTATUS Status;
 	PIO_STACK_LOCATION IrpSp = IoGetCurrentIrpStackLocation(Irp);
 	PDEVICE_OBJECT TargetDeviceObject = IrpSp->Parameters.MountVolume.DeviceObject;
 	PVPB Vpb = IrpSp->Parameters.MountVolume.Vpb;
 	PDEVICE_OBJECT RealDevice = Vpb->RealDevice;
 	PDEVICE_OBJECT VDO = NULL;
-	DISK_GEOMETRY Geometry;
 	BOOLEAN WeClearedVerifyRequiredBit = FALSE;
 	PVCB Vcb = NULL;
 	PVOID Bcb = NULL;
@@ -111,16 +110,16 @@ NTSTATUS Fat32MountVolume(
 	
 	// FatScanForDismountedVcb
 	
-	status = IoCreateDevice(DeviceObject->DriverObject,
+	Status = IoCreateDevice(DeviceObject->DriverObject,
 			sizeof(VCB),
 			NULL,
 			FILE_DEVICE_DISK_FILE_SYSTEM,
 			0,
 			FALSE,
 			&VDO);
-	if (status != STATUS_SUCCESS) {
-		DbgPrint("[Fat32] IoCreateDevice failed, 0x%08x\n", status);
-		goto _IoCreateDevice_Failed;
+	if (Status != STATUS_SUCCESS) {
+		DbgPrint("[Fat32] IoCreateDevice failed, 0x%08x\n", Status);
+		goto fail_exit;
 	}
 	
 	if (TargetDeviceObject->AlignmentRequirement > VDO->AlignmentRequirement) {
@@ -129,16 +128,20 @@ NTSTATUS Fat32MountVolume(
 	
 	VDO->StackSize = TargetDeviceObject->StackSize + 1;
 	
-	status = PerformDeviceIoControl(IOCTL_DISK_GET_DRIVE_GEOMETRY,
-		TargetDeviceObject,
-		NULL, 0,
-		&Geometry, sizeof(DISK_GEOMETRY),
-		FALSE);
-	if (status != STATUS_SUCCESS) {
-		DbgPrint("[Fat32] IOCTL_DISK_GET_DRIVE_GEOMETRY failed, 0x%08x\n", status);
-		goto _PerformDeviceIoControl_Failed;
+	{
+		DISK_GEOMETRY Geometry;
+		
+		Status = PerformDeviceIoControl(IOCTL_DISK_GET_DRIVE_GEOMETRY,
+			TargetDeviceObject,
+			NULL, 0,
+			&Geometry, sizeof(DISK_GEOMETRY),
+			FALSE);
+		if (Status != STATUS_SUCCESS) {
+			DbgPrint("[Fat32] IOCTL_DISK_GET_DRIVE_GEOMETRY failed, 0x%08x\n", Status);
+			goto fail_exit;
+		}
+		VDO->SectorSize = (USHORT)Geometry.BytesPerSector;
 	}
-	VDO->SectorSize = (USHORT)Geometry.BytesPerSector;
 	
 	ClearFlag(VDO->Flags, DO_DEVICE_INITIALIZING);
 	
@@ -158,22 +161,22 @@ NTSTATUS Fat32MountVolume(
 	status = InitializeVcb(Vcb, Vpb, TargetDeviceObject);
 	if (status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] InitializeVcb failed\n");
-		goto _InitializeVcb_Failed;
+		goto fail_exit;
 	}
 	
 	status = Fat32MapData(Vcb, &Bcb, &BootSector);
 	if (status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] Fat32MapData failed\n");
-		goto _Fat32MapData_Failed;
+		goto fail_exit;
 	}
 	
 	status = Fat32CheckBootSector(BootSector);
 	if (status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] Not Fat32 Volume\n");
-		goto _IsFat32_Failed;
+		goto fail_exit;
 	}
 	
-	// Vpb->SerialNumber
+	Vpb->SerialNumber = BootSector.BS_VolID;
 
 	// Unpin Data
 	CcUnpinData(Bcb);
@@ -197,22 +200,29 @@ NTSTATUS Fat32MountVolume(
 	
 	status = STATUS_SUCCESS;
 	
-	
-_IsFat32_Failed:
-_Fat32MapData_Failed:
-	if(status != STATUS_SUCCESS){
-		LARGE_INTEGER FatLargeZero = { 0,0 };
-		CcUninitializeCacheMap(Vcb->VirtualVolumeFile, &FatLargeZero, NULL);
-		FsRtlTeardownPerStreamContexts(&Vcb->VolumeFileHeader);
-		ObDereferenceObject(Vcb->VirtualVolumeFile);
+
+fail_exit:
+	if(Status != STATUS_SUCCESS){
+		if(Bcb){
+			CcUnpinData(Bcb);
+		}
+		if(Vcb){
+			if(Vcb->VirtualVolumeFile){
+				LARGE_INTEGER FatLargeZero = { 0,0 };
+				CcUninitializeCacheMap(Vcb->VirtualVolumeFile, &FatLargeZero, NULL);
+				FsRtlTeardownPerStreamContexts(&Vcb->VolumeFileHeader);
+				
+				ObDereferenceObject(Vcb->VirtualVolumeFile);
+				Vcb->VirtualVolumeFile = NULL;
+			}
+			ObDereferenceObject(TargetDeviceObject);
+			Vcb = NULL
+		}
+		if(VDO){
+			IoDeleteDevice(VDO);
+			VDO = NULL;
+		}
 	}
-_InitializeVcb_Failed:
-	ObDereferenceObject(TargetDeviceObject);
-_PerformDeviceIoControl_Failed:
-	if(status != STATUS_SUCCESS){
-		IoDeleteDevice(VDO);
-	}
-_IoCreateDevice_Failed:
 	
 	if (WeClearedVerifyRequiredBit == TRUE) {
 		SetFlag(RealDevice->Flags, DO_VERIFY_VOLUME);

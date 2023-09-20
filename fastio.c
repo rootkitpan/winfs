@@ -257,6 +257,16 @@ VOID FastIoAcquireFile (PFILE_OBJECT FileObject)
 	UNREFERENCED_PARAMETER(FileObject);
 }
 
+NTSTATUS FilterCallbackAcquireForCreateSection (
+	PFS_FILTER_CALLBACK_DATA CallbackData,
+	PVOID *CompletionContext
+)
+{
+	DbgPrint("[Fat32][FilterCB] %s in\n", __func__);
+	
+	return STATUS_FSFILTER_OP_COMPLETED_SUCCESSFULLY;
+}
+
 
 // PFAST_IO_RELEASE_FILE - ReleaseFileForNtCreateSection
 VOID FastIoReleaseFile (PFILE_OBJECT FileObject)

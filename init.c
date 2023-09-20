@@ -123,7 +123,7 @@ NTSTATUS DriverEntry(
 	FastIo.FastIoUnlockAll = FastIoUnlockAll;
 	FastIo.FastIoUnlockAllByKey = FastIoUnlockAllByKey;
 	FastIo.FastIoDeviceControl = FastIoDeviceControl;
-	FastIo.AcquireFileForNtCreateSection = AcquireFileForNtCreateSection;
+	//FastIo.AcquireFileForNtCreateSection = AcquireFileForNtCreateSection;
 	FastIo.ReleaseFileForNtCreateSection = ReleaseFileForNtCreateSection;
 	FastIo.FastIoDetachDevice = FastIoDetachDevice;
 	FastIo.FastIoQueryNetworkOpenInfo = FastIoQueryNetworkOpenInfo;
@@ -141,6 +141,23 @@ NTSTATUS DriverEntry(
 	FastIo.AcquireForCcFlush = FastIoAcquireForCcFlush;
 	FastIo.ReleaseForCcFlush = FastIoReleaseForCcFlush;
 	DriverObject->FastIoDispatch = &FastIo;
+	
+	{
+		// use PreAcquireForSectionSynchronization in FS_FILTER_CALLBACKS
+		// instead of AcquireFileForNtCreateSection in FastIO
+		FS_FILTER_CALLBACKS FilterCallbacks;
+		
+		RtlZeroMemory( &FilterCallbacks, sizeof(FS_FILTER_CALLBACKS) );
+		FilterCallbacks.SizeOfFsFilterCallbacks = sizeof(FS_FILTER_CALLBACKS);
+		FilterCallbacks.PreAcquireForSectionSynchronization = FilterCallbackAcquireForCreateSection;
+		Status = FsRtlRegisterFileSystemFilterCallbacks(
+				DriverObject,
+				&FilterCallbacks );
+		if(status != STATUS_SUCCESS){
+			DbgPrint("[Fat32] FsRtlRegisterFileSystemFilterCallbacks failed, status = 0x%08X\n", status);
+			return status;
+		}
+	}
 
 	//unload
 	DriverObject->DriverUnload = Fat32Unload;
