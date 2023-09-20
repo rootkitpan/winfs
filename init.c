@@ -1,6 +1,6 @@
 #include "fs_common.h"
 
-static FAST_IO_DISPATCH Fat32FastIo;
+static FAST_IO_DISPATCH FastIo;
 FAT_DATA FatData;
 
 
@@ -111,36 +111,36 @@ NTSTATUS DriverEntry(
 
 
 	// fastio
-	RtlIsZeroMemory(&Fat32FastIo, sizeof(FAST_IO_DISPATCH));
-	Fat32FastIo.SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
-	Fat32FastIo.FastIoCheckIfPossible = FastIoCheckIfPossible;
-	//Fat32FastIo.FastIoRead = Fat32FastIoRead;
-	//Fat32FastIo.FastIoWrite = Fat32FastIoWrite;
-	//Fat32FastIo.FastIoQueryBasicInfo = Fat32FastIoQueryBasicInfo;
-	//Fat32FastIo.FastIoQueryStandardInfo = Fat32FastIoQueryStandardInfo;
-	//Fat32FastIo.FastIoLock = Fat32FastIoLock;
-	//Fat32FastIo.FastIoUnlockSingle = Fat32FastIoUnlockSingle;
-	//Fat32FastIo.FastIoUnlockAll = Fat32FastIoUnlockAll;
-	//Fat32FastIo.FastIoUnlockAllByKey = Fat32FastIoUnlockAllByKey;
-	//Fat32FastIo.FastIoDeviceControl = Fat32FastIoDeviceControl;
-	//Fat32FastIo.AcquireFileForNtCreateSection = Fat32AcquireFileForNtCreateSection;
-	//Fat32FastIo.ReleaseFileForNtCreateSection = Fat32ReleaseFileForNtCreateSection;
-	//Fat32FastIo.FastIoDetachDevice = Fat32FastIoDetachDevice;
-	//Fat32FastIo.FastIoQueryNetworkOpenInfo = Fat32FastIoQueryNetworkOpenInfo;
-	//Fat32FastIo.AcquireForModWrite = Fat32FastIoAcquireForModWrite;
-	//Fat32FastIo.MdlRead = Fat32FastIoMdlRead;
-	//Fat32FastIo.MdlReadComplete = Fat32FastIoMdlReadComplete;
-	//Fat32FastIo.PrepareMdlWrite = Fat32FastIoPrepareMdlWrite;
-	//Fat32FastIo.MdlWriteComplete = Fat32FastIoMdlWriteComplete;
-	//Fat32FastIo.FastIoReadCompressed = Fat32FastIoReadCompressed;
-	//Fat32FastIo.FastIoWriteCompressed = Fat32FastIoWriteCompressed;
-	//Fat32FastIo.MdlReadCompleteCompressed = Fat32FastIoMdlReadCompleteCompressed;
-	//Fat32FastIo.MdlWriteCompleteCompressed = Fat32FastIoMdlWriteCompleteCompressed;
-	//Fat32FastIo.FastIoQueryOpen = Fat32FastIoQueryOpen;
-	//Fat32FastIo.ReleaseForModWrite = Fat32FastIoReleaseForModWrite;
-	//Fat32FastIo.AcquireForCcFlush = Fat32FastIoAcquireForCcFlush;
-	//Fat32FastIo.ReleaseForCcFlush = Fat32FastIoReleaseForCcFlush;
-	DriverObject->FastIoDispatch = &Fat32FastIo;
+	RtlIsZeroMemory(&FastIo, sizeof(FAST_IO_DISPATCH));
+	FastIo.SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
+	FastIo.FastIoCheckIfPossible = FastIoCheckIfPossible;
+	FastIo.FastIoRead = FastIoRead;
+	FastIo.FastIoWrite = FastIoWrite;
+	FastIo.FastIoQueryBasicInfo = FastIoQueryBasicInfo;
+	FastIo.FastIoQueryStandardInfo = FastIoQueryStandardInfo;
+	FastIo.FastIoLock = FastIoLock;
+	FastIo.FastIoUnlockSingle = FastIoUnlockSingle;
+	FastIo.FastIoUnlockAll = FastIoUnlockAll;
+	FastIo.FastIoUnlockAllByKey = FastIoUnlockAllByKey;
+	FastIo.FastIoDeviceControl = FastIoDeviceControl;
+	FastIo.AcquireFileForNtCreateSection = AcquireFileForNtCreateSection;
+	FastIo.ReleaseFileForNtCreateSection = ReleaseFileForNtCreateSection;
+	FastIo.FastIoDetachDevice = FastIoDetachDevice;
+	FastIo.FastIoQueryNetworkOpenInfo = FastIoQueryNetworkOpenInfo;
+	FastIo.AcquireForModWrite = FastIoAcquireForModWrite;
+	FastIo.MdlRead = FastIoMdlRead;
+	FastIo.MdlReadComplete = FastIoMdlReadComplete;
+	FastIo.PrepareMdlWrite = FastIoPrepareMdlWrite;
+	FastIo.MdlWriteComplete = FastIoMdlWriteComplete;
+	FastIo.FastIoReadCompressed = FastIoReadCompressed;
+	FastIo.FastIoWriteCompressed = FastIoWriteCompressed;
+	FastIo.MdlReadCompleteCompressed = FastIoMdlReadCompleteCompressed;
+	FastIo.MdlWriteCompleteCompressed = FastIoMdlWriteCompleteCompressed;
+	FastIo.FastIoQueryOpen = FastIoQueryOpen;
+	FastIo.ReleaseForModWrite = FastIoReleaseForModWrite;
+	FastIo.AcquireForCcFlush = FastIoAcquireForCcFlush;
+	FastIo.ReleaseForCcFlush = FastIoReleaseForCcFlush;
+	DriverObject->FastIoDispatch = &FastIo;
 
 	//unload
 	DriverObject->DriverUnload = Fat32Unload;

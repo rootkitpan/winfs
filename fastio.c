@@ -248,7 +248,8 @@ BOOLEAN FastIoDeviceControl (
 }
 
 
-// PFAST_IO_ACQUIRE_FILE
+// PFAST_IO_ACQUIRE_FILE - AcquireFileForNtCreateSection
+// obsolete
 VOID FastIoAcquireFile (PFILE_OBJECT FileObject)
 {
 	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
@@ -257,7 +258,7 @@ VOID FastIoAcquireFile (PFILE_OBJECT FileObject)
 }
 
 
-// PFAST_IO_RELEASE_FILE
+// PFAST_IO_RELEASE_FILE - ReleaseFileForNtCreateSection
 VOID FastIoReleaseFile (PFILE_OBJECT FileObject)
 {
 	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
@@ -268,8 +269,8 @@ VOID FastIoReleaseFile (PFILE_OBJECT FileObject)
 
 // PFAST_IO_DETACH_DEVICE
 VOID FastIoDetachDevice (
-	PFILE_OBJECT SourceDevice,
-	PFILE_OBJECT TargetDevice
+	PDEVICE_OBJECT SourceDevice,
+	PDEVICE_OBJECT TargetDevice
 )
 {
 	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
@@ -285,7 +286,7 @@ BOOLEAN FastIoQueryNetworkOpenInfo (
 	BOOLEAN Wait,
 	PFILE_NETWORK_OPEN_INFORMATION Buffer,
 	PIO_STATUS_BLOCK IoStatus,
-	PFILE_OBJECT DeviceObject
+	PDEVICE_OBJECT DeviceObject
 )
 {
 	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
@@ -300,12 +301,26 @@ BOOLEAN FastIoQueryNetworkOpenInfo (
 }
 
 
-// PFAST_IO_ACQUIRE_FOR_MOD_WRITE
+// PFAST_IO_ACQUIRE_FOR_MOD_WRITE - AcquireForModWrite
+NTSTATUS FastIoAcquireForModWrite (
+	PFILE_OBJECT FileObject,
+	PLARGE_INTEGER EndingOffset,
+	PERESOURCE *ResourceToRelease,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(EndingOffset);
+	UNREFERENCED_PARAMETER(ResourceToRelease);
+	UNREFERENCED_PARAMETER(DeviceObject);
+
+	return FALSE;
+}
 
 
-
-
-// PFAST_IO_MDL_READ
+// PFAST_IO_MDL_READ - MdlRead
 BOOLEAN FastIoMdlRead (
 	PFILE_OBJECT FileObject,
 	PLARGE_INTEGER FileOffset,
@@ -313,7 +328,7 @@ BOOLEAN FastIoMdlRead (
 	ULONG LockKey,
 	PMDL *MdlChain,
 	PIO_STATUS_BLOCK IoStatus,
-	PFILE_OBJECT DeviceObject
+	PDEVICE_OBJECT DeviceObject
 )
 {
 	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
@@ -330,11 +345,11 @@ BOOLEAN FastIoMdlRead (
 }
 
 
-// PFAST_IO_MDL_READ_COMPLETE
+// PFAST_IO_MDL_READ_COMPLETE - MdlReadComplete
 BOOLEAN FastIoMdlReadComplete (
 	PFILE_OBJECT FileObject,
 	PMDL MdlChain,
-	PFILE_OBJECT DeviceObject
+	PDEVICE_OBJECT DeviceObject
 )
 {
 	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
@@ -347,59 +362,208 @@ BOOLEAN FastIoMdlReadComplete (
 }
 
 
-// PFAST_IO_PREPARE_MDL_WRITE
+// PFAST_IO_PREPARE_MDL_WRITE - PrepareMdlWrite
+BOOLEAN FastIoPrepareMdlWrite (
+	PFILE_OBJECT FileObject,
+	PLARGE_INTEGER FileOffset,
+	ULONG Length,
+	ULONG LockKey,
+	PMDL *MdlChain,
+	PIO_STATUS_BLOCK IoStatus,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(FileOffset);
+	UNREFERENCED_PARAMETER(Length);
+	UNREFERENCED_PARAMETER(LockKey);
+	UNREFERENCED_PARAMETER(MdlChain);
+	UNREFERENCED_PARAMETER(IoStatus);
+	UNREFERENCED_PARAMETER(DeviceObject);
+
+	return FALSE;
+}
 
 
+// PFAST_IO_MDL_WRITE_COMPLETE - MdlWriteComplete
+BOOLEAN FastIoMdlWriteComplete (
+	PFILE_OBJECT FileObject,
+	PLARGE_INTEGER FileOffset,
+	PMDL MdlChain,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(FileOffset);
+	UNREFERENCED_PARAMETER(MdlChain);
+	UNREFERENCED_PARAMETER(DeviceObject);
 
-
-
-// PFAST_IO_MDL_WRITE_COMPLETE
-
-
-
-
+	return FALSE;
+}
 
 
 // PFAST_IO_READ_COMPRESSED
+BOOLEAN FastIoReadCompressed (
+	PFILE_OBJECT FileObject,
+	PLARGE_INTEGER FileOffset,
+	ULONG Length,
+	ULONG LockKey,
+	PVOID Buffer,
+	PMDL *MdlChain,
+	PIO_STATUS_BLOCK IoStatus,
+	PCOMPRESSED_DATA_INFO CompressedDataInfo,
+	ULONG CompressedDataInfoLength,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(FileOffset);
+	UNREFERENCED_PARAMETER(Length);
+	UNREFERENCED_PARAMETER(LockKey);
+	UNREFERENCED_PARAMETER(Buffer);
+	UNREFERENCED_PARAMETER(MdlChain);
+	UNREFERENCED_PARAMETER(IoStatus);
+	UNREFERENCED_PARAMETER(CompressedDataInfo);
+	UNREFERENCED_PARAMETER(CompressedDataInfoLength);
+	UNREFERENCED_PARAMETER(DeviceObject);
 
-
+	return FALSE;
+}
 
 
 // PFAST_IO_WRITE_COMPRESSED
+BOOLEAN FastIoWriteCompressed (
+	PFILE_OBJECT FileObject,
+	PLARGE_INTEGER FileOffset,
+	ULONG Length,
+	ULONG LockKey,
+	PVOID Buffer,
+	PMDL *MdlChain,
+	PIO_STATUS_BLOCK IoStatus,
+	PCOMPRESSED_DATA_INFO CompressedDataInfo,
+	ULONG CompressedDataInfoLength,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(FileOffset);
+	UNREFERENCED_PARAMETER(Length);
+	UNREFERENCED_PARAMETER(LockKey);
+	UNREFERENCED_PARAMETER(Buffer);
+	UNREFERENCED_PARAMETER(MdlChain);
+	UNREFERENCED_PARAMETER(IoStatus);
+	UNREFERENCED_PARAMETER(CompressedDataInfo);
+	UNREFERENCED_PARAMETER(CompressedDataInfoLength);
+	UNREFERENCED_PARAMETER(DeviceObject);
+
+	return FALSE;
+}
 
 
+// PFAST_IO_MDL_READ_COMPLETE_COMPRESSED - MdlReadCompleteCompressed
+BOOLEAN FastIoMdlReadCompleteCompressed (
+	PFILE_OBJECT FileObject,
+	PMDL MdlChain,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(MdlChain);
+	UNREFERENCED_PARAMETER(DeviceObject);
+
+	return FALSE;
+}
 
 
+// PFAST_IO_MDL_WRITE_COMPLETE_COMPRESSED - MdlWriteCompleteCompressed
+BOOLEAN FastIoMdlWriteCompleteCompressed (
+	PFILE_OBJECT FileObject,
+	PLARGE_INTEGER FileOffset,
+	PMDL MdlChain,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(FileOffset);
+	UNREFERENCED_PARAMETER(MdlChain);
+	UNREFERENCED_PARAMETER(DeviceObject);
 
-// PFAST_IO_MDL_READ_COMPLETE_COMPRESSED
-
-
-
-
-// PFAST_IO_MDL_WRITE_COMPLETE_COMPRESSED
-
-
-
+	return FALSE;
+}
 
 
 // PFAST_IO_QUERY_OPEN
+BOOLEAN FastIoQueryOpen (
+	PIRP Irp,
+	PFILE_NETWORK_OPEN_INFORMATION NetworkInformation,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(Irp);
+	UNREFERENCED_PARAMETER(NetworkInformation);
+	UNREFERENCED_PARAMETER(DeviceObject);
+
+	return FALSE;
+}
 
 
+// PFAST_IO_RELEASE_FOR_MOD_WRITE - ReleaseForModWrite
+NTSTATUS FastIoReleaseForModWrite (
+	PFILE_OBJECT FileObject,
+	PERESOURCE ResourceToRelease,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(ResourceToRelease);
+	UNREFERENCED_PARAMETER(DeviceObject);
+
+	return FALSE;
+}
 
 
+// PFAST_IO_ACQUIRE_FOR_CCFLUSH - AcquireForCcFlush
+NTSTATUS FastIoAcquireForCcflush (
+	PFILE_OBJECT FileObject,
+	PDEVICE_OBJECT DeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(DeviceObject);
 
-// PFAST_IO_RELEASE_FOR_MOD_WRITE
+	return FALSE;
+}
 
 
+// PFAST_IO_RELEASE_FOR_CCFLUSH - ReleaseForCcFlush
+NTSTATUS FastIoReleaseForCcflush (
+	PFILE_OBJECT FileObject,
+	PDEVICE_OBJECTDeviceObject
+)
+{
+	DbgPrint("[Fat32][FastIO] %s in\n", __func__);
+	
+	UNREFERENCED_PARAMETER(FileObject);
+	UNREFERENCED_PARAMETER(DeviceObject);
 
-
-
-// PFAST_IO_ACQUIRE_FOR_CCFLUSH
-
-
-
-
-
-// PFAST_IO_RELEASE_FOR_CCFLUSH
-
+	return FALSE;
+}
 
