@@ -26,12 +26,13 @@ typedef struct _FAT_DATA {
 
 
 // IRP Major Function
-DRIVER_DISPATCH Fat32Common;
-DRIVER_DISPATCH Fat32Create;
-DRIVER_DISPATCH Fat32Close;
-DRIVER_DISPATCH Fat32FileSystemControl;
-DRIVER_DISPATCH Fat32Cleanup;
-DRIVER_DISPATCH Fat32Pnp;
+DRIVER_DISPATCH DispatchCommon;
+DRIVER_DISPATCH DispatchCreate;
+DRIVER_DISPATCH DispatchClose;
+DRIVER_DISPATCH DispatchRead;
+DRIVER_DISPATCH DispatchFileSystemControl;
+DRIVER_DISPATCH DispatchCleanup;
+DRIVER_DISPATCH DispatchPnp;
 
 // Fast IO
 FAST_IO_CHECK_IF_POSSIBLE FastIoCheckIfPossible;

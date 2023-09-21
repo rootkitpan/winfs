@@ -80,34 +80,34 @@ NTSTATUS DriverEntry(
 	UNREFERENCED_PARAMETER(RegistryPath);
 
 	// dispatch
-	DriverObject->MajorFunction[IRP_MJ_CREATE] = Fat32Create;
-	DriverObject->MajorFunction[IRP_MJ_CREATE_NAMED_PIPE] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_CLOSE] = Fat32Close;
-	DriverObject->MajorFunction[IRP_MJ_READ] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_WRITE] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_QUERY_INFORMATION] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_SET_INFORMATION] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_QUERY_EA] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_SET_EA] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_FLUSH_BUFFERS] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_QUERY_VOLUME_INFORMATION] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_SET_VOLUME_INFORMATION] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_DIRECTORY_CONTROL] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = Fat32FileSystemControl;
-	DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_INTERNAL_DEVICE_CONTROL] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_SHUTDOWN] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_LOCK_CONTROL] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_CLEANUP] = Fat32Cleanup;
-	DriverObject->MajorFunction[IRP_MJ_CREATE_MAILSLOT] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_QUERY_SECURITY] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_SET_SECURITY] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_POWER] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_SYSTEM_CONTROL] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_DEVICE_CHANGE] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_QUERY_QUOTA] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_SET_QUOTA] = Fat32Common;
-	DriverObject->MajorFunction[IRP_MJ_PNP] = Fat32Pnp;
+	DriverObject->MajorFunction[IRP_MJ_CREATE] = DispatchCreate;
+	DriverObject->MajorFunction[IRP_MJ_CREATE_NAMED_PIPE] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_CLOSE] = DispatchClose;
+	DriverObject->MajorFunction[IRP_MJ_READ] = DispatchRead;
+	DriverObject->MajorFunction[IRP_MJ_WRITE] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_QUERY_INFORMATION] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_SET_INFORMATION] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_QUERY_EA] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_SET_EA] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_FLUSH_BUFFERS] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_QUERY_VOLUME_INFORMATION] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_SET_VOLUME_INFORMATION] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_DIRECTORY_CONTROL] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = DispatchFileSystemControl;
+	DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_INTERNAL_DEVICE_CONTROL] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_SHUTDOWN] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_LOCK_CONTROL] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_CLEANUP] = DispatchCleanup;
+	DriverObject->MajorFunction[IRP_MJ_CREATE_MAILSLOT] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_QUERY_SECURITY] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_SET_SECURITY] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_POWER] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_SYSTEM_CONTROL] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_DEVICE_CHANGE] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_QUERY_QUOTA] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_SET_QUOTA] = DispatchCommon;
+	DriverObject->MajorFunction[IRP_MJ_PNP] = DispatchPnp;
 
 
 	// fastio

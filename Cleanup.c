@@ -1,7 +1,7 @@
 #include "fs_common.h"
 
 
-NTSTATUS DispatchClose(
+NTSTATUS DispatchCleanup(
 	PDEVICE_OBJECT DeviceObject,
 	PIRP Irp)
 {
@@ -19,4 +19,3 @@ NTSTATUS DispatchClose(
 
 	return STATUS_UNSUCCESSFUL;
 }
-

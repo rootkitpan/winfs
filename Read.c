@@ -1,13 +1,13 @@
 #include "fs_common.h"
 
 
-NTSTATUS Fat32Cleanup(
+NTSTATUS DispatchRead(
 	PDEVICE_OBJECT DeviceObject,
 	PIRP Irp)
 {
 	UNREFERENCED_PARAMETER(DeviceObject);
 
-	DbgPrint("[Fat32] Fat32Cleanup in\n");
+	DbgPrint("[Fat32] %s in\n", __func__);
 
 	FsRtlEnterFileSystem();
 

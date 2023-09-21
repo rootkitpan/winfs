@@ -26,7 +26,7 @@ static NTSTATUS InitializeVcb(
 	Vcb->VirtualVolumeFile->Vpb = Vpb;
 	Vcb->VirtualVolumeFile->FsContext = Vcb;
 	Vcb->VirtualVolumeFile->FsContext2 = NULL;
-	Vcb->VirtualVolumeFile->SectionObjectPointer = &Vcb->SectionObjectPointers;
+	Vcb->VirtualVolumeFile->SectionObjectPointer = &(Vcb->SectionObjectPointers);
 	Vcb->VirtualVolumeFile->ReadAccess = TRUE;
 	Vcb->VirtualVolumeFile->WriteAccess = TRUE;
 	Vcb->VirtualVolumeFile->DeleteAccess = TRUE;
@@ -266,7 +266,7 @@ NTSTATUS Fat32UserFsRequest(
 
 
 
-NTSTATUS Fat32FileSystemControl(
+NTSTATUS DispatchFileSystemControl(
 	PDEVICE_OBJECT DeviceObject,
 	PIRP Irp
 )
@@ -286,7 +286,7 @@ NTSTATUS Fat32FileSystemControl(
 
 	IrpSp = IoGetCurrentIrpStackLocation(Irp);
 
-	DbgPrint("[Fat32] Fat32FileSystemControl in DeviceObject = %p\n", DeviceObject);
+	DbgPrint("[Fat32] %s in DeviceObject = %p\n", __func__, DeviceObject);
 	
 
 	switch (IrpSp->MinorFunction) {

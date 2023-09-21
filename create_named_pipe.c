@@ -1,7 +1,7 @@
 #include "fs_common.h"
 
 
-NTSTATUS Fat32Common(
+NTSTATUS DispatchCommon(
 	PDEVICE_OBJECT DeviceObject,
 	PIRP Irp)
 {
@@ -9,7 +9,7 @@ NTSTATUS Fat32Common(
 
 	UNREFERENCED_PARAMETER(DeviceObject);
 
-	DbgPrint("[Fat32] Fat32Common in\n");
+	DbgPrint("[Fat32] %s in\n", __func__);
 
 	FsRtlEnterFileSystem();
 

@@ -1,13 +1,13 @@
 #include "fs_common.h"
 
 
-NTSTATUS Fat32Pnp(
+NTSTATUS DispatchPnp(
 	PDEVICE_OBJECT DeviceObject,
 	PIRP Irp)
 {
 	UNREFERENCED_PARAMETER(DeviceObject);
 
-	DbgPrint("[Fat32] Fat32Pnp in\n");
+	DbgPrint("[Fat32] %s in\n", __func__);
 
 	FsRtlEnterFileSystem();
 

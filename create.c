@@ -1,13 +1,13 @@
 #include "fs_common.h"
 
 
-NTSTATUS Fat32Create(
+NTSTATUS DispatchCreate(
 	PDEVICE_OBJECT DeviceObject,
 	PIRP Irp)
 {
 	UNREFERENCED_PARAMETER(DeviceObject);
 
-	DbgPrint("[Fat32] Fat32Create in\n");
+	DbgPrint("[Fat32] %s in\n", __func__);
 
 	FsRtlEnterFileSystem();
 
