@@ -60,7 +60,7 @@ static NTSTATUS InitializeVcb(
 }
 
 
-NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR BootSector)
+NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR *BootSector)
 {
 	LARGE_INTEGER StartingVbo;
 	BOOLEAN bRet = FALSE;
@@ -73,14 +73,14 @@ NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR BootSector)
 			sizeof(FAT32_BOOT_SECTOR),
 			MAP_WAIT,
 			Bcb,
-			(PVOID)BootSector);
+			(PVOID*)BootSector);
 		if (bRet == FALSE) {
 			DbgPrint("[Fat32] CcMapData failed\n");
 			return STATUS_UNSUCCESSFUL;
 		}
 	} except(EXCEPTION_EXECUTE_HANDLER) {
 		status = GetExceptionCode();
-		DbgPrint("[Fat32] CcMapData abnormal, status = %x\n", status);
+		DbgPrint("[Fat32] CcMapData abnormal, status = 0x%X\n", status);
 		return STATUS_UNSUCCESSFUL;
 
 		// STATUS_INVALID_DEVICE_REQUEST 0xC0000010
@@ -104,7 +104,7 @@ NTSTATUS Fat32MountVolume(
 	BOOLEAN WeClearedVerifyRequiredBit = FALSE;
 	PVCB Vcb = NULL;
 	PVOID Bcb = NULL;
-	FAT32_BOOT_SECTOR BootSector;
+	PFAT32_BOOT_SECTOR BootSector;
 	
 	DbgPrint("[Fat32] IRP_MN_MOUNT_VOLUME in\n");
 	
@@ -170,13 +170,13 @@ NTSTATUS Fat32MountVolume(
 		goto fail_exit;
 	}
 	
-	Status = Fat32CheckBootSector(&BootSector);
+	Status = Fat32CheckBootSector(BootSector);
 	if (Status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] Not Fat32 Volume\n");
 		goto fail_exit;
 	}
 	
-	Vpb->SerialNumber = BootSector.BS_VolID;
+	Vpb->SerialNumber = BootSector->BS_VolID;
 
 	// Unpin Data
 	CcUnpinData(Bcb);
