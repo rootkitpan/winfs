@@ -60,7 +60,7 @@ static NTSTATUS InitializeVcb(
 }
 
 
-NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR *BootSector)
+NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR BootSector)
 {
 	LARGE_INTEGER StartingVbo;
 	BOOLEAN bRet = FALSE;
@@ -73,7 +73,7 @@ NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR *BootSector)
 			sizeof(FAT32_BOOT_SECTOR),
 			MAP_WAIT,
 			Bcb,
-			BootSector);
+			(PVOID)BootSector);
 		if (bRet == FALSE) {
 			DbgPrint("[Fat32] CcMapData failed\n");
 			return STATUS_UNSUCCESSFUL;
@@ -104,7 +104,7 @@ NTSTATUS Fat32MountVolume(
 	BOOLEAN WeClearedVerifyRequiredBit = FALSE;
 	PVCB Vcb = NULL;
 	PVOID Bcb = NULL;
-	PFAT32_BOOT_SECTOR BootSector = NULL;
+	FAT32_BOOT_SECTOR BootSector;
 	
 	DbgPrint("[Fat32] IRP_MN_MOUNT_VOLUME in\n");
 	
@@ -158,20 +158,20 @@ NTSTATUS Fat32MountVolume(
 	ObReferenceObject(TargetDeviceObject);
 	
 	Vcb = (PVCB)VDO->DeviceExtension;
-	status = InitializeVcb(Vcb, Vpb, TargetDeviceObject);
-	if (status != STATUS_SUCCESS) {
+	Status = InitializeVcb(Vcb, Vpb, TargetDeviceObject);
+	if (Status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] InitializeVcb failed\n");
 		goto fail_exit;
 	}
 	
-	status = Fat32MapData(Vcb, &Bcb, &BootSector);
-	if (status != STATUS_SUCCESS) {
+	Status = Fat32MapData(Vcb, &Bcb, &BootSector);
+	if (Status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] Fat32MapData failed\n");
 		goto fail_exit;
 	}
 	
-	status = Fat32CheckBootSector(BootSector);
-	if (status != STATUS_SUCCESS) {
+	Status = Fat32CheckBootSector(&BootSector);
+	if (Status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] Not Fat32 Volume\n");
 		goto fail_exit;
 	}
@@ -198,7 +198,7 @@ NTSTATUS Fat32MountVolume(
 	
 	
 	
-	status = STATUS_SUCCESS;
+	Status = STATUS_SUCCESS;
 	
 
 fail_exit:
@@ -216,7 +216,7 @@ fail_exit:
 				Vcb->VirtualVolumeFile = NULL;
 			}
 			ObDereferenceObject(TargetDeviceObject);
-			Vcb = NULL
+			Vcb = NULL;
 		}
 		if(VDO){
 			IoDeleteDevice(VDO);
@@ -228,8 +228,8 @@ fail_exit:
 		SetFlag(RealDevice->Flags, DO_VERIFY_VOLUME);
 	}
 	
-	DbgPrint("[Fat32] IRP_MN_MOUNT_VOLUME out, status = %x\n", status);
-	return status;
+	DbgPrint("[Fat32] IRP_MN_MOUNT_VOLUME out, status = %x\n", Status);
+	return Status;
 }
 
 

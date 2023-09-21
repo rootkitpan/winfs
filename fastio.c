@@ -263,6 +263,9 @@ NTSTATUS FilterCallbackAcquireForCreateSection (
 )
 {
 	DbgPrint("[Fat32][FilterCB] %s in\n", __func__);
+
+	UNREFERENCED_PARAMETER(CallbackData);
+	UNREFERENCED_PARAMETER(CompletionContext);
 	
 	return STATUS_FSFILTER_OP_COMPLETED_SUCCESSFULLY;
 }
@@ -549,7 +552,7 @@ NTSTATUS FastIoReleaseForModWrite (
 
 
 // PFAST_IO_ACQUIRE_FOR_CCFLUSH - AcquireForCcFlush
-NTSTATUS FastIoAcquireForCcflush (
+NTSTATUS FastIoAcquireForCcFlush (
 	PFILE_OBJECT FileObject,
 	PDEVICE_OBJECT DeviceObject
 )
@@ -564,9 +567,9 @@ NTSTATUS FastIoAcquireForCcflush (
 
 
 // PFAST_IO_RELEASE_FOR_CCFLUSH - ReleaseForCcFlush
-NTSTATUS FastIoReleaseForCcflush (
+NTSTATUS FastIoReleaseForCcFlush (
 	PFILE_OBJECT FileObject,
-	PDEVICE_OBJECTDeviceObject
+	PDEVICE_OBJECT DeviceObject
 )
 {
 	DbgPrint("[Fat32][FastIO] %s in\n", __func__);

@@ -74,7 +74,7 @@ NTSTATUS DriverEntry(
 	PUNICODE_STRING RegistryPath
 )
 {
-	NTSTATUS status = STATUS_SUCCESS;
+	NTSTATUS Status = STATUS_SUCCESS;
 	UNICODE_STRING DeviceName;
 
 	UNREFERENCED_PARAMETER(RegistryPath);
@@ -123,8 +123,8 @@ NTSTATUS DriverEntry(
 	FastIo.FastIoUnlockAll = FastIoUnlockAll;
 	FastIo.FastIoUnlockAllByKey = FastIoUnlockAllByKey;
 	FastIo.FastIoDeviceControl = FastIoDeviceControl;
-	//FastIo.AcquireFileForNtCreateSection = AcquireFileForNtCreateSection;
-	FastIo.ReleaseFileForNtCreateSection = ReleaseFileForNtCreateSection;
+	//FastIo.AcquireFileForNtCreateSection = FastIoAcquireFile;
+	FastIo.ReleaseFileForNtCreateSection = FastIoReleaseFile;
 	FastIo.FastIoDetachDevice = FastIoDetachDevice;
 	FastIo.FastIoQueryNetworkOpenInfo = FastIoQueryNetworkOpenInfo;
 	FastIo.AcquireForModWrite = FastIoAcquireForModWrite;
@@ -153,9 +153,9 @@ NTSTATUS DriverEntry(
 		Status = FsRtlRegisterFileSystemFilterCallbacks(
 				DriverObject,
 				&FilterCallbacks );
-		if(status != STATUS_SUCCESS){
-			DbgPrint("[Fat32] FsRtlRegisterFileSystemFilterCallbacks failed, status = 0x%08X\n", status);
-			return status;
+		if(Status != STATUS_SUCCESS){
+			DbgPrint("[Fat32] FsRtlRegisterFileSystemFilterCallbacks failed, status = 0x%08X\n", Status);
+			return Status;
 		}
 	}
 
@@ -164,16 +164,16 @@ NTSTATUS DriverEntry(
 
 	// create file system device object(CDO / FsDO)
 	RtlInitUnicodeString(&DeviceName, L"\\TestFat32");
-	status = IoCreateDevice(DriverObject,
+	Status = IoCreateDevice(DriverObject,
 		0,
 		&DeviceName,
 		FILE_DEVICE_DISK_FILE_SYSTEM,
 		0,
 		FALSE,
 		&FatData.FsDO);
-	if (status != STATUS_SUCCESS) {
-		DbgPrint("[Fat32] IoCreateDevice failed, status = 0x%08X\n", status);
-		return status;
+	if (Status != STATUS_SUCCESS) {
+		DbgPrint("[Fat32] IoCreateDevice failed, status = 0x%08X\n", Status);
+		return Status;
 	}
 	DbgPrint("[Fat32] FsDO = %p\n", FatData.FsDO);
 
@@ -193,7 +193,7 @@ NTSTATUS DriverEntry(
 
 	DbgPrint("[Fat32] DriverEntry ok\n");
 
-	return status;
+	return Status;
 }
 
 
