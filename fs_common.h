@@ -17,12 +17,12 @@
 #define FAT_NTC_CCB ((CSHORT)0x0704)
 
 
-typedef struct _FAT_DATA {
-	PDEVICE_OBJECT FsDO;
+typedef struct _FS_DATA {
+	PDEVICE_OBJECT CDO;
 	ERESOURCE Resource;
 	CACHE_MANAGER_CALLBACKS CacheManagerCallbacks;
 	CACHE_MANAGER_CALLBACKS CacheManagerNoOpCallbacks;
-} FAT_DATA, *PFAT_DATA;
+} FS_DATA, *PFS_DATA;
 
 
 // IRP Major Function
@@ -81,6 +81,6 @@ NTSTATUS PerformDeviceIoControl(
 
 
 
-extern FAT_DATA FatData;
+extern FS_DATA FsData;
 
 #endif /* _FS_COMMON_H_ */

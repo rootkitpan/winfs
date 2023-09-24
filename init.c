@@ -1,7 +1,7 @@
 #include "fs_common.h"
 
 static FAST_IO_DISPATCH FastIo;
-FAT_DATA FatData;
+FS_DATA FsData;
 
 
 static BOOLEAN Fat32AcquireForReadAheadNoOp(
@@ -63,8 +63,8 @@ VOID Fat32Unload(PDRIVER_OBJECT DriverObject)
 {
 	UNREFERENCED_PARAMETER(DriverObject);
 
-	if (FatData.FsDO) {
-		IoDeleteDevice(FatData.FsDO);
+	if (FsData.CDO) {
+		IoDeleteDevice(FsData.CDO);
 	}
 }
 
@@ -170,26 +170,26 @@ NTSTATUS DriverEntry(
 		FILE_DEVICE_DISK_FILE_SYSTEM,
 		0,
 		FALSE,
-		&FatData.FsDO);
+		&FsData.CDO);
 	if (Status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] IoCreateDevice failed, status = 0x%08X\n", Status);
 		return Status;
 	}
-	DbgPrint("[Fat32] FsDO = %p\n", FatData.FsDO);
+	DbgPrint("[Fat32] CDO = %p\n", FsData.CDO);
 
 
 
-	// init FatData
-	ExInitializeResourceLite( &FatData.Resource );
-	FatData.CacheManagerNoOpCallbacks.AcquireForReadAhead = &Fat32AcquireForReadAheadNoOp;
-	FatData.CacheManagerNoOpCallbacks.ReleaseFromReadAhead = &Fat32ReleaseFromReadAheadNoOp;
-	FatData.CacheManagerNoOpCallbacks.AcquireForLazyWrite = &Fat32AcquireForLazyWriteNoOp;
-	FatData.CacheManagerNoOpCallbacks.ReleaseFromLazyWrite = &Fat32ReleaseFromLazyWriteNoOp;
+	// init FsData
+	ExInitializeResourceLite( &FsData.Resource );
+	FsData.CacheManagerNoOpCallbacks.AcquireForReadAhead = &Fat32AcquireForReadAheadNoOp;
+	FsData.CacheManagerNoOpCallbacks.ReleaseFromReadAhead = &Fat32ReleaseFromReadAheadNoOp;
+	FsData.CacheManagerNoOpCallbacks.AcquireForLazyWrite = &Fat32AcquireForLazyWriteNoOp;
+	FsData.CacheManagerNoOpCallbacks.ReleaseFromLazyWrite = &Fat32ReleaseFromLazyWriteNoOp;
 	
 	
 	
-	IoRegisterFileSystem(FatData.FsDO);
-	ObReferenceObject(FatData.FsDO);
+	IoRegisterFileSystem(FsData.CDO);
+	ObReferenceObject(FsData.CDO);
 
 	DbgPrint("[Fat32] DriverEntry ok\n");
 

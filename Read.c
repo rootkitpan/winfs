@@ -7,7 +7,7 @@ NTSTATUS DispatchRead(
 {
 	UNREFERENCED_PARAMETER(DeviceObject);
 
-	DbgPrint("[Fat32] %s in\n", __func__);
+	DbgPrint("[Fat32] %s %p in\n", __func__, DeviceObject);
 
 	FsRtlEnterFileSystem();
 

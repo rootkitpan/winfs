@@ -42,7 +42,7 @@ static NTSTATUS InitializeVcb(
 		CcInitializeCacheMap(Vcb->VirtualVolumeFile,
 				&FileSizes,
 				TRUE,
-				&FatData.CacheManagerNoOpCallbacks,
+				&FsData.CacheManagerNoOpCallbacks,
 				Vcb);
 	} except(EXCEPTION_EXECUTE_HANDLER) {
 		status = GetExceptionCode();
@@ -121,6 +121,7 @@ NTSTATUS Fat32MountVolume(
 		DbgPrint("[Fat32] IoCreateDevice failed, 0x%08x\n", Status);
 		goto fail_exit;
 	}
+	DbgPrint("[Fat32] VDO = %p\n", VDO);
 	
 	if (TargetDeviceObject->AlignmentRequirement > VDO->AlignmentRequirement) {
 		VDO->AlignmentRequirement = TargetDeviceObject->AlignmentRequirement;
