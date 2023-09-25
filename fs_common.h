@@ -16,6 +16,11 @@
 #define FAT_NTC_DCB ((CSHORT)0x0703)
 #define FAT_NTC_CCB ((CSHORT)0x0704)
 
+#define NodeType(Ptr) (*((PCSHORT)Ptr))
+
+
+
+
 
 typedef struct _FS_DATA {
 	PDEVICE_OBJECT CDO;
@@ -70,17 +75,40 @@ NTSTATUS FilterCallbackAcquireForCreateSection(
 
 // disk io util
 NTSTATUS PerformDeviceIoControl(
-    ULONG IoControlCode,
-    PDEVICE_OBJECT Device,
-    PVOID InputBuffer,
-    ULONG InputBufferLength,
-    OUT PVOID OutputBuffer,
-    ULONG OutputBufferLength,
-    BOOLEAN InternalDeviceIoControl
+	ULONG IoControlCode,
+	PDEVICE_OBJECT Device,
+	PVOID InputBuffer,
+	ULONG InputBufferLength,
+	OUT PVOID OutputBuffer,
+	ULONG OutputBufferLength,
+	BOOLEAN InternalDeviceIoControl
 );
+
+
+// FILE_OJBECT type
+#define USER_FILE				((ULONG)0)
+#define USER_DIRECTORY			((ULONG)1)
+#define USER_VOLUME				((ULONG)2)
+#define VOLUME_STREAM_FILE		((ULONG)3)
+#define DIRETORY_STREAM_FILE	((ULONG)4)
 
 
 
 extern FS_DATA FsData;
 
+
+
+
+NTSTATUS DecodeFileObject (
+	PFILE_OBJECT FileObject,
+	PULONG Type,
+	PVCB *Vcb,
+	PFCB *FcbOrDcb,
+	PCCB *Ccb
+)
+
+
+
 #endif /* _FS_COMMON_H_ */
+
+
