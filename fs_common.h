@@ -23,7 +23,6 @@
 
 
 typedef struct _FS_DATA {
-	PDEVICE_OBJECT CDO;
 	ERESOURCE Resource;
 	CACHE_MANAGER_CALLBACKS CacheManagerCallbacks;
 	CACHE_MANAGER_CALLBACKS CacheManagerNoOpCallbacks;
@@ -95,17 +94,18 @@ NTSTATUS PerformDeviceIoControl(
 
 
 extern FS_DATA FsData;
+extern PDEVICE_OBJECT gCDO;
 
 
 
 
-NTSTATUS DecodeFileObject (
+NTSTATUS DecodeFileObject(
 	PFILE_OBJECT FileObject,
 	PULONG Type,
-	PVCB *Vcb,
-	PFCB *FcbOrDcb,
-	PCCB *Ccb
-)
+	PVCB* Vcb,
+	PFCB* FcbOrDcb,
+	PCCB* Ccb
+);
 
 
 

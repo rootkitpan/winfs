@@ -23,5 +23,9 @@ typedef struct _VCB {
 } VCB, * PVCB;
 
 
+typedef struct _CCB {
+	ULONG dummy;
+} CCB, *PCCB;
+
 #endif /* _MEMORY_DATA_H_ */
 

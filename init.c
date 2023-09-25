@@ -2,6 +2,7 @@
 
 static FAST_IO_DISPATCH FastIo;
 FS_DATA FsData;
+PDEVICE_OBJECT gCDO;
 
 
 static BOOLEAN Fat32AcquireForReadAheadNoOp(
@@ -63,8 +64,8 @@ VOID Fat32Unload(PDRIVER_OBJECT DriverObject)
 {
 	UNREFERENCED_PARAMETER(DriverObject);
 
-	if (FsData.CDO) {
-		IoDeleteDevice(FsData.CDO);
+	if (gCDO) {
+		IoDeleteDevice(gCDO);
 	}
 }
 
@@ -170,12 +171,12 @@ NTSTATUS DriverEntry(
 		FILE_DEVICE_DISK_FILE_SYSTEM,
 		0,
 		FALSE,
-		&FsData.CDO);
+		&gCDO);
 	if (Status != STATUS_SUCCESS) {
 		DbgPrint("[Fat32] IoCreateDevice failed, status = 0x%08X\n", Status);
 		return Status;
 	}
-	DbgPrint("[Fat32] CDO = %p\n", FsData.CDO);
+	DbgPrint("[Fat32] CDO = %p\n", gCDO);
 
 
 
@@ -188,8 +189,8 @@ NTSTATUS DriverEntry(
 	
 	
 	
-	IoRegisterFileSystem(FsData.CDO);
-	ObReferenceObject(FsData.CDO);
+	IoRegisterFileSystem(gCDO);
+	ObReferenceObject(gCDO);
 
 	DbgPrint("[Fat32] DriverEntry ok\n");
 
