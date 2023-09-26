@@ -90,6 +90,7 @@ NTSTATUS PerformDeviceIoControl(
 #define USER_VOLUME				((ULONG)2)
 #define VOLUME_STREAM_FILE		((ULONG)3)
 #define DIRETORY_STREAM_FILE	((ULONG)4)
+#define UNKNOWN_FILE_OBJECT		((ULONG)5)
 
 
 

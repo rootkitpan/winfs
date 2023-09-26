@@ -146,7 +146,7 @@ NTSTATUS Fat32MountVolume(
 	
 	ClearFlag(VDO->Flags, DO_DEVICE_INITIALIZING);
 	
-	// TODO
+	// direct IRP to our FS
 	Vpb->DeviceObject = VDO;
 	
 	if (FlagOn(RealDevice->Flags, DO_VERIFY_VOLUME)) {
@@ -161,7 +161,7 @@ NTSTATUS Fat32MountVolume(
 	Vcb = (PVCB)VDO->DeviceExtension;
 	Status = InitializeVcb(Vcb, Vpb, TargetDeviceObject);
 	if (Status != STATUS_SUCCESS) {
-		DbgPrint("[Fat32] InitializeVcb failed\n");
+		DbgPrint("[Fat32] Initialize Vcb failed\n");
 		goto fail_exit;
 	}
 	

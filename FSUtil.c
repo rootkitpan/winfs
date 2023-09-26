@@ -7,15 +7,21 @@ NTSTATUS DecodeFileObject (
 	PFILE_OBJECT FileObject,
 	PULONG Type,
 	PVCB *Vcb,
-	PFCB *FcbOrDcb,
+	PFCB *Fcb,			// FCB or DCB
 	PCCB *Ccb
 )
 {
 	PVOID FsContext = FileObject->FsContext;			// FCB DCB VCB
 	PVOID FsContext2 = FileObject->FsContext2;			// CCB
 	
+	*Type = UNKNOWN_FILE_OBJECT;
+	*Vcb = NULL;
+	*Fcb = NULL;
+	*Ccb = NULL;
+	
 	if(FsContext == NULL){
-		return STATUS_UNSUCCESSFUL;
+		// FsContext not set yet
+		return STATUS_SUCCESS;
 	}
 	
 	switch(NodeType(FsContext)){
@@ -23,12 +29,12 @@ NTSTATUS DecodeFileObject (
 		if(FsContext2 == NULL){
 			*Type = VOLUME_STREAM_FILE;
 			*Vcb = FsContext;
-			*FcbOrDcb = NULL;
+			*Fcb = NULL;
 			*Ccb = NULL;
 		} else {
 			*Type = USER_VOLUME;
 			*Vcb = FsContext;
-			*FcbOrDcb = NULL;
+			*Fcb = NULL;
 			*Ccb = FsContext2;
 		}
 		break;
