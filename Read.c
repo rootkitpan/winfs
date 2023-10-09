@@ -17,12 +17,12 @@ NTSTATUS ReadCompletionRoutine(
 	ULONG_PTR Information;
 	PCOMPLETE_CONTEXT Context2;
 	
-	DbgPrint("%s in\n", __func__);
+	DbgPrint("[Fat32] %s in\n", __func__);
 	UNREFERENCED_PARAMETER( DeviceObject );
 	
 	Status = Irp->IoStatus.Status;
 	Information = Irp->IoStatus.Information;
-	DbgPrint("Status = 0x%08X, Information = %d\n", Status, Information);
+	DbgPrint("[Fat32] Status = 0x%08X, Information = %llu\n", Status, Information);
 	
 	Context2 = (PCOMPLETE_CONTEXT)Context;
 	KeSetEvent( &Context2->SyncEvent, 0, FALSE );
@@ -32,7 +32,7 @@ NTSTATUS ReadCompletionRoutine(
 
 
 
-VOID DispatchReadCommon(PIRP Irp) 
+NTSTATUS DispatchReadCommon(PIRP Irp) 
 {
 	PIO_STACK_LOCATION IrpSp = IoGetCurrentIrpStackLocation(Irp);
 	PFILE_OBJECT FileObject = IrpSp->FileObject;
@@ -45,8 +45,9 @@ VOID DispatchReadCommon(PIRP Irp)
 	BOOLEAN PagingIo = BooleanFlagOn(Irp->Flags, IRP_PAGING_IO);
 	LONGLONG StartingByte = IrpSp->Parameters.Read.ByteOffset.QuadPart;
 	ULONG ByteCount = IrpSp->Parameters.Read.Length;
+	NTSTATUS Status;
 
-	DbgPrint("[Fat32] %s [%d] [%d] [%lld] [%lu]\n", __func__,
+	DbgPrint("[Fat32] %s NonCachedIo=%d  PagingIo=%d StartingByte=%lld ByteCount=%lu \n", __func__,
 		NonCachedIo, PagingIo, StartingByte, ByteCount);
 
 	DecodeFileObject(FileObject, &Type, &Vcb, &Fcb, &Ccb);
@@ -66,11 +67,11 @@ VOID DispatchReadCommon(PIRP Irp)
 			TRUE, TRUE, TRUE);
 		
 		NextIrpSp = IoGetNextIrpStackLocation(Irp);
-		DbgPrint("[Fat32] NextIrpSp->MajorFunction = %d", NextIrpSp->MajorFunction);
+		DbgPrint("[Fat32] NextIrpSp->MajorFunction = %d\n", NextIrpSp->MajorFunction);
 		NextIrpSp->MajorFunction = IRP_MJ_READ;
-		DbgPrint("[Fat32] Length = %d", NextIrpSp->Parameters.Read.Length);
+		DbgPrint("[Fat32] Length = %d\n", NextIrpSp->Parameters.Read.Length);
 		NextIrpSp->Parameters.Read.Length = ByteCount;
-		DbgPrint("[Fat32] ByteOffset = %d", NextIrpSp->Parameters.Read.ByteOffset.QuadPart);
+		DbgPrint("[Fat32] ByteOffset = %lld\n", NextIrpSp->Parameters.Read.ByteOffset.QuadPart);
 		NextIrpSp->Parameters.Read.ByteOffset.QuadPart = StartingByte;
 		
 #if 0
@@ -89,7 +90,9 @@ VOID DispatchReadCommon(PIRP Irp)
 		}
 #endif
 		
-		IoCallDriver(Vcb->TargetDeviceObject, Irp);
+		Status = IoCallDriver(Vcb->TargetDeviceObject, Irp);
+		DbgPrint("[Fat32] IoCallDriver Status = 0x%08X\n", Status);
+		// STATUS_PENDING = 0x00000103
 		
 		KeWaitForSingleObject(
 			&Context->SyncEvent,
@@ -97,15 +100,22 @@ VOID DispatchReadCommon(PIRP Irp)
 		);
 		KeClearEvent(&Context->SyncEvent);
 		
-		FileObject->CurrentByteOffset.QuadPart = StartingByte + Irp->IoStatus.Information;
+		if (Irp->IoStatus.Status == STATUS_SUCCESS) {
+			DbgPrint("[Fat32] Read OK\n");
+			FileObject->CurrentByteOffset.QuadPart = StartingByte + Irp->IoStatus.Information;
+		}
 		
 		IoCompleteRequest( Irp, IO_DISK_INCREMENT );
+
+		return Irp->IoStatus.Status;
 		
 	} else {
 		DbgPrint("[Fat32] unknown Type of read\n");
 		Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
 		Irp->IoStatus.Information = 0;
 		IoCompleteRequest(Irp, IO_DISK_INCREMENT);
+
+		return Irp->IoStatus.Status;
 	}
 
 }
@@ -118,6 +128,7 @@ NTSTATUS DispatchRead(
 	PIRP Irp)
 {
 	BOOLEAN TopLevel;
+	NTSTATUS Status;
 
 	UNREFERENCED_PARAMETER(DeviceObject);
 
@@ -133,7 +144,7 @@ NTSTATUS DispatchRead(
 		TopLevel = FALSE;
 	}
 
-	DispatchReadCommon(Irp);
+	Status = DispatchReadCommon(Irp);
 
 	if (TopLevel) {
 		IoSetTopLevelIrp(NULL);
@@ -141,5 +152,5 @@ NTSTATUS DispatchRead(
 
 	FsRtlExitFileSystem();
 
-	return STATUS_UNSUCCESSFUL;
+	return Status;
 }

@@ -26,7 +26,7 @@ static NTSTATUS InitializeVcb(
 	Vcb->VirtualVolumeFile->Vpb = Vpb;
 	Vcb->VirtualVolumeFile->FsContext = Vcb;
 	Vcb->VirtualVolumeFile->FsContext2 = NULL;
-	Vcb->VirtualVolumeFile->SectionObjectPointer = &(Vcb->SectionObjectPointers);
+	Vcb->VirtualVolumeFile->SectionObjectPointer = &Vcb->SectionObjectPointers;
 	Vcb->VirtualVolumeFile->ReadAccess = TRUE;
 	Vcb->VirtualVolumeFile->WriteAccess = TRUE;
 	Vcb->VirtualVolumeFile->DeleteAccess = TRUE;
