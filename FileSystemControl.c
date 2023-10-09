@@ -90,6 +90,20 @@ NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR *BootSector)
 	return STATUS_SUCCESS;
 }
 
+/*
+	1. create VDO
+		AlignmentRequirement
+		StackSize
+		SectorSize
+		clear DO_DEVICE_INITIALIZING
+		Vpb->DeviceObject = VDO
+		check & clear DO_VERIFY_VOLUME
+		Initialize VCB
+	
+	2. read boot sector & recognize the FAT32
+	
+	
+*/
 NTSTATUS Fat32MountVolume(
 	PDEVICE_OBJECT DeviceObject,		// CDO
 	PIRP Irp
