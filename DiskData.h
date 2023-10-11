@@ -40,7 +40,7 @@ typedef struct _FAT32_BOOT_SECTOR {
 	UCHAR	BS_DrvNum;					/* 64 */
 	UCHAR	BS_Reserved1;				/* 65 */
 	UCHAR	BS_BootSig;					/* 66 */
-	ULONG	BS_VolID;					/* 67 */
+	ULONG32	BS_VolID;					/* 67 */
 	UCHAR	BS_VolLab[11];				/* 71 */
 	UCHAR	BS_FilSysType[8];			/* 82 */
 	UCHAR	Reserved[420];				/* 90 */

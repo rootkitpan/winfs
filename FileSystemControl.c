@@ -90,6 +90,40 @@ NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR *BootSector)
 	return STATUS_SUCCESS;
 }
 
+
+NTSTATUS CreateRootDCB(PVCB Vcb)
+{
+	PDCB Dcb;
+	
+	Dcb = FsRtlAllocatePoolWithTag(
+		NonPagedPoolNx,
+		sizeof(DCB),
+		MEMTAG_FCB );
+	
+	RtlZeroMemory( Dcb, sizeof(DCB) );
+	
+	Dcb->Header.NodeTypeCode = FAT_NTC_DCB;
+	Dcb->Header.NodeByteSize = sizeof(DCB);
+	Dcb->Header.Resource = &Dcb->Resource;
+	Dcb->Header.PagingIoResource = &Dcb->PagingIoResource;
+	ExInitializeFastMutex( &Dcb->AdvancedFcbHeaderMutex );
+	FsRtlSetupAdvancedHeader( &Dcb->Header, &Dcb->AdvancedFcbHeaderMutex );
+	
+	Dcb->Vcb = Vcb;
+	
+	Dcb->FirstClusterOfFile = Vcb->Bpb.RootFirstCluster;
+	
+	//GetAllocationSize
+	Dcb->Header.AllocationSize.QuadPart = ;
+	Dcb->Header.FileSize.QuadPart = Dcb->Header.AllocationSize.QuadPart;
+	
+	
+	Vcb->RootDcb = Dcb;
+	
+	return STATUS_SUCCESS;
+}
+
+
 /*
 	1. create VDO
 		AlignmentRequirement
@@ -196,9 +230,10 @@ NTSTATUS Fat32MountVolume(
 	// Unpin Data
 	CcUnpinData(Bcb);
 	
-	// TODO
-	// create RootDCB
 	
+	CreateRootDCB(Vcb);
+	
+	// TODO
 	// VolumeLabel
 	// Vpb->VolumeLabel
 	// Vpb->VolumeLabelLength

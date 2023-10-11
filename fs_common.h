@@ -9,13 +9,6 @@
 #include "MemoryData.h"
 
 
-
-// node type
-#define FAT_NTC_VCB ((CSHORT)0x0701)
-#define FAT_NTC_FCB ((CSHORT)0x0702)
-#define FAT_NTC_DCB ((CSHORT)0x0703)
-#define FAT_NTC_CCB ((CSHORT)0x0704)
-
 #define NodeType(Ptr) (*((PCSHORT)Ptr))
 
 
