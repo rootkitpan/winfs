@@ -90,6 +90,21 @@ NTSTATUS Fat32MapData(PVCB Vcb, PVOID *Bcb, PFAT32_BOOT_SECTOR *BootSector)
 	return STATUS_SUCCESS;
 }
 
+VOID ConvertToBpb(PFAT32_BOOT_SECTOR BootSector, PBPB_INFO BpbInfo)
+{
+	BpbInfo->BytesPerSector = BootSector->BPB_BytsPerSec;
+	BpbInfo->SectorsPerCluster = BootSector->BPB_SecPerClus;
+	BpbInfo->FATCount = BootSector->BPB_NumFATs;
+	BpbInfo->ReservedSectorCount = BootSector->BPB_RsvdSecCnt;
+	BpbInfo->TotalSectorCount = BootSector->BPB_TotSec32;
+	BpbInfo->FatSizeInSector = BootSector->BPB_FatSz32;
+	BpbInfo->RootFirstCluster = BootSector->BPB_RootClus;
+	BpbInfo->VolumeID = BootSector->BS_VolID;
+	RtlCopyMemory(
+		BpbInfo->VolumeLabel,
+		BootSector->BS_VolID,
+		11);
+}
 
 NTSTATUS CreateRootDCB(PVCB Vcb)
 {
@@ -224,8 +239,10 @@ NTSTATUS Fat32MountVolume(
 		DbgPrint("[Fat32] Not Fat32 Volume\n");
 		goto fail_exit;
 	}
+
+	ConvertToBpb(BootSector, &Vcb->Bpb);
 	
-	Vpb->SerialNumber = BootSector->BS_VolID;
+	Vpb->SerialNumber = Vcb->Bpb.VolumeID;
 
 	// Unpin Data
 	CcUnpinData(Bcb);
