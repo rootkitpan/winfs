@@ -106,9 +106,18 @@ VOID ConvertToBpb(PFAT32_BOOT_SECTOR BootSector, PBPB_INFO BpbInfo)
 		11);
 }
 
+
+NTSTATUS GetRootDirAllocationSize(PVCB Vcb, LONGLONG* Size)
+{
+	NTSTATUS Status;
+	
+	
+}
+
 NTSTATUS CreateRootDCB(PVCB Vcb)
 {
 	PDCB Dcb;
+	NTSTATUS Status;
 	
 	Dcb = FsRtlAllocatePoolWithTag(
 		NonPagedPoolNx,
@@ -119,6 +128,17 @@ NTSTATUS CreateRootDCB(PVCB Vcb)
 	
 	Dcb->Header.NodeTypeCode = FAT_NTC_DCB;
 	Dcb->Header.NodeByteSize = sizeof(DCB);
+	
+	Status = ExInitializeResourceLite(&Dcb->Resource);
+	if(Status != STATUS_SUCCESS){
+		DbgPrint("[Fat32] Resource init failed, Status = 0x%08X\n", Status);
+		return Status;
+	}
+	Status = ExInitializeResourceLite(&Dcb->PagingIoResource);
+	if(Status != STATUS_SUCCESS){
+		DbgPrint("[Fat32] PagingIoResource init failed, Status = 0x%08X\n", Status);
+		return Status;
+	}
 	Dcb->Header.Resource = &Dcb->Resource;
 	Dcb->Header.PagingIoResource = &Dcb->PagingIoResource;
 	ExInitializeFastMutex( &Dcb->AdvancedFcbHeaderMutex );
@@ -129,7 +149,9 @@ NTSTATUS CreateRootDCB(PVCB Vcb)
 	Dcb->FirstClusterOfFile = Vcb->Bpb.RootFirstCluster;
 	
 	//GetAllocationSize
-	Dcb->Header.AllocationSize.QuadPart = ;
+	Status = GetAllocationSize(
+		Vcb->Bpb.RootFirstCluster,
+		&Dcb->Header.AllocationSize.QuadPart);
 	Dcb->Header.FileSize.QuadPart = Dcb->Header.AllocationSize.QuadPart;
 	
 	
