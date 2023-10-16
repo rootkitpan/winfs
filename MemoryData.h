@@ -32,6 +32,10 @@ typedef struct _BPB_INFO{
 	UCHAR		VolumeLabel[11];
 } BPB_INFO, *PBPB_INFO;
 
+static inline LONGLONG Fat32GetCluterSize(PBPB_INFO Bpb)
+{
+	return (Bpb->BytesPerSector * Bpb->SectorsPerCluster);
+}
 
 
 typedef struct _FCB{

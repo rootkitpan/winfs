@@ -143,6 +143,8 @@ NTSTATUS FatEntryWalk(ULONG32 FatEntry, PVCB Vcb, PULONG32 FatEntryValue)
 	
 	*FatEntryValue = FatTable[Vbo/4];
 	
+	DbgPrint("[Fat32] %s %lu --> %lu \n", __func__, FatEntry, *FatEntryValue);
+	
 	return STATUS_SUCCESS;
 }
 
@@ -152,15 +154,52 @@ NTSTATUS GetAllocationSize(
 	PVCB Vcb
 )
 {
-	NTSTATUS Status;
+	NTSTATUS Status = STATUS_SUCCESS;
 	LONGLONG AllocationSize = 0;
 	PBCB Bcb = NULL;
 	ULONG FatEntryVal;
+	ULONG32 ClusterType = ;
+	LONGLONG ClusterSize = Fat32GetCluterSize(Vcb->Bpb);
 	
-	do {
-		Status = FatEntryWalk(FatEntry, &FatEntryVal);
-	} while(1);
+	AllocationSize += ClusterSize;
 	
+	while(Status == STATUS_SUCCESS){
+		
+		Fat32CheckClusterType(FatEntry, &ClusterType);
+		
+		switch(ClusterType){
+		case FAT32_CLUSTER_NEXT:
+			Status = FatEntryWalk(FatEntry, Vcb, &FatEntryVal);
+			if( Status != SUCCESS_STATUS ){
+				break;
+			}
+			
+			AllocationSize += ClusterSize;
+			FatEntry = FatEntryVal;
+			
+			break;
+			
+		case FAT32_CLUSTER_LAST:
+			break;
+			
+		case FAT32_CLUSTER_FREE:
+		case FAT32_CLUSTER_RESERVED:
+		case FAT32_CLUSTER_BAD:
+		case FAT32_CLUSTER_UNKNOWN:
+		default:
+			DbgPrint("[Fat32][error] Fat allocation chain breaks");
+			Status = STATUS_UNSUCCESSFUL;
+			break;
+		}
+		
+		if(ClusterType == FAT32_CLUSTER_LAST){
+			Status = STATUS_SUCCESS;
+			*Size = AllocationSize;
+			break;
+		}
+	}
+	
+	return Status;
 }
 
 NTSTATUS CreateRootDCB(PVCB Vcb)
@@ -201,6 +240,9 @@ NTSTATUS CreateRootDCB(PVCB Vcb)
 		Vcb->Bpb.RootFirstCluster,
 		&Dcb->Header.AllocationSize.QuadPart,
 		Vcb);
+	if(Status != STATUS_SUCCESS){
+		return Status;
+	}
 	Dcb->Header.FileSize.QuadPart = Dcb->Header.AllocationSize.QuadPart;
 	
 	
