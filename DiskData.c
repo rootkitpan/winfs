@@ -105,4 +105,27 @@ NTSTATUS Fat32CheckBootSector(PFAT32_BOOT_SECTOR BootSector)
 }
 
 
+NTSTATUS Fat32CheckClusterType(ULONG32 FatEntry, ULONG32 *ClusterType)
+{
+	FatEntry &= FAT32_FAT_ENTRY_MASK;
+	
+	if(FatEntry == FAT32_FAT_ENTRY_FREE){
+		*ClusterType = FAT32_CLUSTER_FREE;
+	} else if(FatEntry < FAT32_FAT_ENTRY_RESERVED){
+		*ClusterType = FAT32_CLUSTER_NEXT;
+	} else if(FatEntry == FAT32_FAT_ENTRY_RESERVED){
+		*ClusterType = FAT32_CLUSTER_RESERVED;
+	} else if(FatEntry == FAT32_FAT_ENTRY_BAD){
+		*ClusterType = FAT32_CLUSTER_BAD;
+	} else if(FatEntry == FAT32_FAT_ENTRY_BAD){
+		*ClusterType = FAT32_CLUSTER_LAST;
+	} else {
+		DbgPrint("[Fat32][error] FatEntry = 0x%08X\n", FatEntry);
+		*ClusterType = FAT32_CLUSTER_UNKNOWN;
+	}
+	
+	return STATUS_SUCCESS;
+}
+
+
 

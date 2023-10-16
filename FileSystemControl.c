@@ -107,10 +107,59 @@ VOID ConvertToBpb(PFAT32_BOOT_SECTOR BootSector, PBPB_INFO BpbInfo)
 }
 
 
-NTSTATUS GetRootDirAllocationSize(PVCB Vcb, LONGLONG* Size)
+NTSTATUS FatEntryWalk(ULONG32 FatEntry, PVCB Vcb, PULONG32 FatEntryValue)
+{
+	LONGLONG Vbo = 0;
+	PBPB_INFO Bpb = &Vcb->Bpb;
+	LARGE_INTEGER StartOffset;
+	NTSTATUS Status;
+	PBCB Bcb = NULL;
+	PULONG32 FatTable = NULL;
+	
+	Vbo += (Bpb->ReservedSectorCount * Bpb->SectorsPerCluster);
+	Vbo += FatEntry * 4;
+	Vbo %= PAGE_SIZE;
+	StartOffset.Quad = Vbo;
+	
+	try {
+		BOOLEAN bRet;
+		
+		bRet = CcMapData(
+			Vcb->VirtualVolumeFile
+			&StartOffset,
+			PAGE_SIZE,
+			MAP_WAIT,
+			&Bcb,
+			&FatTable);
+		if(bRet == FALSE){
+			DbgPrint("[Fat32] CcMapData failed\n");
+			return STATUS_UNSUCCESSFUL;
+		}
+	} except(EXCEPTION_EXECUTE_HANDLER) {
+		status = GetExceptionCode();
+		DbgPrint("[Fat32] CcMapData abnormal, status = 0x%X\n", status);
+		return STATUS_UNSUCCESSFUL;
+	}
+	
+	*FatEntryValue = FatTable[Vbo/4];
+	
+	return STATUS_SUCCESS;
+}
+
+
+NTSTATUS GetAllocationSize(
+	ULONG32 FatEntry, LONGLONG* Size,
+	PVCB Vcb
+)
 {
 	NTSTATUS Status;
+	LONGLONG AllocationSize = 0;
+	PBCB Bcb = NULL;
+	ULONG FatEntryVal;
 	
+	do {
+		Status = FatEntryWalk(FatEntry, &FatEntryVal);
+	} while(1);
 	
 }
 
@@ -148,10 +197,10 @@ NTSTATUS CreateRootDCB(PVCB Vcb)
 	
 	Dcb->FirstClusterOfFile = Vcb->Bpb.RootFirstCluster;
 	
-	//GetAllocationSize
 	Status = GetAllocationSize(
 		Vcb->Bpb.RootFirstCluster,
-		&Dcb->Header.AllocationSize.QuadPart);
+		&Dcb->Header.AllocationSize.QuadPart,
+		Vcb);
 	Dcb->Header.FileSize.QuadPart = Dcb->Header.AllocationSize.QuadPart;
 	
 	

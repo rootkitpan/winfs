@@ -83,6 +83,28 @@ typedef struct _FAT32_DIRENTRY {
 #pragma pack()
 
 
+
+
+// FAT Entry / Cluster
+#define FAT32_FAT_ENTRY_MASK			( (ULONG32)0x0FFFFFFF )
+#define FAT32_FAT_ENTRY_FREE			( (ULONG32)0x00000000 )
+#define FAT32_FAT_ENTRY_RESERVED		( (ULONG32)0x0FFFFFF0 )
+#define FAT32_FAT_ENTRY_BAD				( (ULONG32)0x0FFFFFF7 )
+#define FAT32_FAT_ENTRY_LAST			( (ULONG32)0x0FFFFFFF )
+
+#define FAT32_CLUSTER_FREE				(0)
+#define FAT32_CLUSTER_NEXT				(1)
+#define FAT32_CLUSTER_RESERVED			(2)
+#define FAT32_CLUSTER_BAD				(3)
+#define FAT32_CLUSTER_LAST				(4)
+#define FAT32_CLUSTER_UNKNOWN			(5)
+
+
+
 NTSTATUS Fat32CheckBootSector(PFAT32_BOOT_SECTOR BootSector);
+NTSTATUS Fat32CheckClusterType(ULONG32 FatEntry, ULONG32 *ClusterType);
+
 
 #endif /* _DISK_DATA_H_ */
+
+
