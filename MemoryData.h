@@ -5,6 +5,8 @@
 #include "DiskData.h"
 
 
+struct _VCB;
+
 // Memory Allocation Tag
 #define MEMTAG_FCB	('FCB ')
 
@@ -44,14 +46,14 @@ static inline LONGLONG Fat32GetCluterSize(PBPB_INFO Bpb)
 }
 
 
-typedef struct _FCB{
+typedef struct _FCB {
 	FSRTL_ADVANCED_FCB_HEADER Header;
 	SECTION_OBJECT_POINTERS SectionObjectPointers;
 	FAST_MUTEX AdvancedFcbHeaderMutex;
 	ERESOURCE Resource;
 	ERESOURCE PagingIoResource;
 	
-	PVCB Vcb;
+	struct _VCB* Vcb;
 	
 	//FS
 	ULONG FirstClusterOfFile;

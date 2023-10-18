@@ -102,7 +102,7 @@ VOID ConvertToBpb(PFAT32_BOOT_SECTOR BootSector, PBPB_INFO BpbInfo)
 	BpbInfo->VolumeID = BootSector->BS_VolID;
 	RtlCopyMemory(
 		BpbInfo->VolumeLabel,
-		BootSector->BS_VolID,
+		BootSector->BS_VolLab,
 		11);
 	
 	// calculate
@@ -122,19 +122,19 @@ NTSTATUS FatEntryWalk(ULONG32 FatEntry, PVCB Vcb, PULONG32 FatEntryValue)
 	PBPB_INFO Bpb = &Vcb->Bpb;
 	LARGE_INTEGER StartOffset;
 	NTSTATUS Status;
-	PBCB Bcb = NULL;
+	PVOID Bcb = NULL;
 	PULONG32 FatTable = NULL;
 	
 	Vbo += (Bpb->ReservedSectorCount * Bpb->SectorsPerCluster);
 	Vbo += FatEntry * 4;
 	Vbo %= PAGE_SIZE;
-	StartOffset.Quad = Vbo;
+	StartOffset.QuadPart = Vbo;
 	
 	try {
 		BOOLEAN bRet;
 		
 		bRet = CcMapData(
-			Vcb->VirtualVolumeFile
+			Vcb->VirtualVolumeFile,
 			&StartOffset,
 			PAGE_SIZE,
 			MAP_WAIT,
@@ -145,8 +145,8 @@ NTSTATUS FatEntryWalk(ULONG32 FatEntry, PVCB Vcb, PULONG32 FatEntryValue)
 			return STATUS_UNSUCCESSFUL;
 		}
 	} except(EXCEPTION_EXECUTE_HANDLER) {
-		status = GetExceptionCode();
-		DbgPrint("[Fat32] CcMapData abnormal, status = 0x%X\n", status);
+		Status = GetExceptionCode();
+		DbgPrint("[Fat32] CcMapData abnormal, status = 0x%X\n", Status);
 		return STATUS_UNSUCCESSFUL;
 	}
 	
@@ -165,10 +165,9 @@ NTSTATUS GetAllocationSize(
 {
 	NTSTATUS Status = STATUS_SUCCESS;
 	LONGLONG AllocationSize = 0;
-	PBCB Bcb = NULL;
-	ULONG FatEntryVal;
-	ULONG32 ClusterType = ;
-	LONGLONG ClusterSize = Fat32GetCluterSize(Vcb->Bpb);
+	ULONG32 FatEntryVal;
+	ULONG32 ClusterType;
+	LONGLONG ClusterSize = Fat32GetCluterSize(&Vcb->Bpb);
 	
 	AllocationSize += ClusterSize;
 	
@@ -179,7 +178,7 @@ NTSTATUS GetAllocationSize(
 		switch(ClusterType){
 		case FAT32_CLUSTER_NEXT:
 			Status = FatEntryWalk(FatEntry, Vcb, &FatEntryVal);
-			if( Status != SUCCESS_STATUS ){
+			if( Status != STATUS_SUCCESS){
 				break;
 			}
 			
@@ -380,8 +379,8 @@ NTSTATUS Fat32MountVolume(
 			FileSizes.ValidDataLength.LowPart = MAXULONG;
 			CcSetFileSizes(Vcb->VirtualVolumeFile, &FileSizes);
 		} except(EXCEPTION_EXECUTE_HANDLER) {
-			status = GetExceptionCode();
-			DbgPrint("[Fat32] CcSetFileSizes abnormal, status = 0x%X\n", status);
+			Status = GetExceptionCode();
+			DbgPrint("[Fat32] CcSetFileSizes abnormal, status = 0x%X\n", Status);
 			goto fail_exit;
 		}
 	}
