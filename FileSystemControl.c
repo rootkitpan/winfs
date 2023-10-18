@@ -104,6 +104,15 @@ VOID ConvertToBpb(PFAT32_BOOT_SECTOR BootSector, PBPB_INFO BpbInfo)
 		BpbInfo->VolumeLabel,
 		BootSector->BS_VolID,
 		11);
+	
+	// calculate
+	BpbInfo->ReservedSize = BpbInfo->BytesPerSector * BpbInfo->ReservedSectorCount;
+	BpbInfo->FatSize = BpbInfo->FATCount * BpbInfo->FatSizeInSector * BpbInfo->BytesPerSector;
+	BpbInfo->ClusterCount = 
+			(BpbInfo->TotalSectorCount - 
+			BpbInfo->ReservedSectorCount - 
+			BpbInfo->FATCount * BpbInfo->FatSizeInSector) 
+			/ BpbInfo->SectorsPerCluster;
 }
 
 
@@ -360,6 +369,7 @@ NTSTATUS Fat32MountVolume(
 	// Unpin Data
 	CcUnpinData(Bcb);
 	
+	// cache size extended to include FATs
 	
 	CreateRootDCB(Vcb);
 	

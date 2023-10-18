@@ -21,6 +21,7 @@
 
 
 typedef struct _BPB_INFO{
+	// from BPB
 	USHORT		BytesPerSector;
 	UCHAR		SectorsPerCluster;
 	UCHAR		FATCount;
@@ -30,6 +31,11 @@ typedef struct _BPB_INFO{
 	ULONG32		RootFirstCluster;
 	ULONG32		VolumeID;
 	UCHAR		VolumeLabel[11];
+	
+	// calculate
+	ULONG32		ReservedSize;
+	ULONG32		FatSize;
+	ULONG32		ClusterCount;
 } BPB_INFO, *PBPB_INFO;
 
 static inline LONGLONG Fat32GetCluterSize(PBPB_INFO Bpb)
