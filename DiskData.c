@@ -117,7 +117,7 @@ NTSTATUS Fat32CheckClusterType(ULONG32 FatEntry, ULONG32 *ClusterType)
 		*ClusterType = FAT32_CLUSTER_RESERVED;
 	} else if(FatEntry == FAT32_FAT_ENTRY_BAD){
 		*ClusterType = FAT32_CLUSTER_BAD;
-	} else if(FatEntry == FAT32_FAT_ENTRY_BAD){
+	} else if(FatEntry == FAT32_FAT_ENTRY_LAST){
 		*ClusterType = FAT32_CLUSTER_LAST;
 	} else {
 		DbgPrint("[Fat32][error] FatEntry = 0x%08X\n", FatEntry);

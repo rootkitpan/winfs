@@ -119,16 +119,16 @@ VOID ConvertToBpb(PFAT32_BOOT_SECTOR BootSector, PBPB_INFO BpbInfo)
 NTSTATUS FatEntryWalk(ULONG32 FatEntry, PVCB Vcb, PULONG32 FatEntryValue)
 {
 	LONGLONG Vbo = 0;
+	LONGLONG VboInPage = 0;
 	PBPB_INFO Bpb = &Vcb->Bpb;
 	LARGE_INTEGER StartOffset;
 	NTSTATUS Status;
 	PVOID Bcb = NULL;
 	PULONG32 FatTable = NULL;
 	
-	Vbo += (Bpb->ReservedSectorCount * Bpb->SectorsPerCluster);
-	Vbo += FatEntry * 4;
-	Vbo %= PAGE_SIZE;
-	StartOffset.QuadPart = Vbo;
+	Vbo = Bpb->ReservedSize + FatEntry * 4;
+	VboInPage = Vbo % PAGE_SIZE;
+	StartOffset.QuadPart = Vbo & ~(PAGE_SIZE - 1);
 	
 	try {
 		BOOLEAN bRet;
@@ -150,9 +150,9 @@ NTSTATUS FatEntryWalk(ULONG32 FatEntry, PVCB Vcb, PULONG32 FatEntryValue)
 		return STATUS_UNSUCCESSFUL;
 	}
 	
-	*FatEntryValue = FatTable[Vbo/4];
+	*FatEntryValue = FatTable[VboInPage /4];
 	
-	DbgPrint("[Fat32] %s %lu --> %lu \n", __func__, FatEntry, *FatEntryValue);
+	DbgPrint("[Fat32] %s 0x%08X --> 0x%08X \n", __func__, FatEntry, *FatEntryValue);
 	
 	return STATUS_SUCCESS;
 }
@@ -166,12 +166,12 @@ NTSTATUS GetAllocationSize(
 	NTSTATUS Status = STATUS_SUCCESS;
 	LONGLONG AllocationSize = 0;
 	ULONG32 FatEntryVal;
-	ULONG32 ClusterType;
+	ULONG32 ClusterType = FAT32_CLUSTER_UNKNOWN;
 	LONGLONG ClusterSize = Fat32GetCluterSize(&Vcb->Bpb);
 	
 	AllocationSize += ClusterSize;
 	
-	while(Status == STATUS_SUCCESS){
+	while(ClusterType != FAT32_CLUSTER_LAST){
 		
 		Fat32CheckClusterType(FatEntry, &ClusterType);
 		
@@ -179,6 +179,7 @@ NTSTATUS GetAllocationSize(
 		case FAT32_CLUSTER_NEXT:
 			Status = FatEntryWalk(FatEntry, Vcb, &FatEntryVal);
 			if( Status != STATUS_SUCCESS){
+				ClusterType = FAT32_CLUSTER_LAST;
 				break;
 			}
 			
@@ -188,6 +189,8 @@ NTSTATUS GetAllocationSize(
 			break;
 			
 		case FAT32_CLUSTER_LAST:
+			*Size = AllocationSize;
+			Status = STATUS_SUCCESS;
 			break;
 			
 		case FAT32_CLUSTER_FREE:
@@ -197,12 +200,7 @@ NTSTATUS GetAllocationSize(
 		default:
 			DbgPrint("[Fat32][error] Fat allocation chain breaks");
 			Status = STATUS_UNSUCCESSFUL;
-			break;
-		}
-		
-		if(ClusterType == FAT32_CLUSTER_LAST){
-			Status = STATUS_SUCCESS;
-			*Size = AllocationSize;
+			ClusterType = FAT32_CLUSTER_LAST;
 			break;
 		}
 	}
@@ -385,7 +383,11 @@ NTSTATUS Fat32MountVolume(
 		}
 	}
 	
-	CreateRootDCB(Vcb);
+	Status = CreateRootDCB(Vcb);
+	if (Status != STATUS_SUCCESS) {
+		DbgPrint("[Fat32] Create Root DCB error\n");
+		goto fail_exit;
+	}
 	
 	// TODO
 	// VolumeLabel

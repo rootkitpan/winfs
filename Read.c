@@ -67,11 +67,11 @@ NTSTATUS DispatchReadCommon(PIRP Irp)
 			TRUE, TRUE, TRUE);
 		
 		NextIrpSp = IoGetNextIrpStackLocation(Irp);
-		DbgPrint("[Fat32] NextIrpSp->MajorFunction = %d\n", NextIrpSp->MajorFunction);
+		//DbgPrint("[Fat32] NextIrpSp->MajorFunction = %d\n", NextIrpSp->MajorFunction);
 		NextIrpSp->MajorFunction = IRP_MJ_READ;
-		DbgPrint("[Fat32] Length = %d\n", NextIrpSp->Parameters.Read.Length);
+		//DbgPrint("[Fat32] Length = %d\n", NextIrpSp->Parameters.Read.Length);
 		NextIrpSp->Parameters.Read.Length = ByteCount;
-		DbgPrint("[Fat32] ByteOffset = %lld\n", NextIrpSp->Parameters.Read.ByteOffset.QuadPart);
+		//DbgPrint("[Fat32] ByteOffset = %lld\n", NextIrpSp->Parameters.Read.ByteOffset.QuadPart);
 		NextIrpSp->Parameters.Read.ByteOffset.QuadPart = StartingByte;
 		
 #if 0
