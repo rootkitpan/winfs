@@ -370,6 +370,21 @@ NTSTATUS Fat32MountVolume(
 	CcUnpinData(Bcb);
 	
 	// cache size extended to include FATs
+	{
+		try{
+			CC_FILE_SIZES FileSizes;
+			
+			FileSizes.AllocationSize.QuadPart = Vcb->Bpb.ReservedSize + Vcb->Bpb.FatSize;
+			FileSizes.FileSize.QuadPart = FileSizes.AllocationSize.QuadPart;
+			FileSizes.ValidDataLength.HighPart = MAXLONG;
+			FileSizes.ValidDataLength.LowPart = MAXULONG;
+			CcSetFileSizes(Vcb->VirtualVolumeFile, &FileSizes);
+		} except(EXCEPTION_EXECUTE_HANDLER) {
+			status = GetExceptionCode();
+			DbgPrint("[Fat32] CcSetFileSizes abnormal, status = 0x%X\n", status);
+			goto fail_exit;
+		}
+	}
 	
 	CreateRootDCB(Vcb);
 	
