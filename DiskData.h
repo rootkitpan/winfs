@@ -95,6 +95,11 @@ typedef struct _FAT32_FSINFO_SECTOR {
  * Bits 5-8: Month of year, 1 = January, valid value range 1-12 inclusive.
  * Bits 9-15: Count of years from 1980, valid value range 0-127 inclusive (1980-2107).
  */
+typedef _FAT_DATE {
+	USHORT	Day : 5;
+	USHORT	Month : 4;
+	USHORT	Year : 7;
+} FAT_DATE, *PFAT_DATE;
 
 /*
  * Time Format
@@ -103,21 +108,26 @@ typedef struct _FAT32_FSINFO_SECTOR {
  * Bits 11-15: Hours, valid value range 0-23 inclusive.
  * The valid time range is from Midnight 00:00:00 to 23:59:58.
  */
+typedef _FAT_TIME {
+	USHORT	Second : 5;		/* 2-second count */
+	USHORT	Minute : 6;
+	USHORT	Hour : 5;
+} FAT_TIME, *PFAT_TIME;
 
 #pragma pack(1)
 typedef struct _FAT32_DIRENTRY {
-	CHAR	DIR_Name[11];				/* 0 */
-	UCHAR	DIR_Attr;					/* 11 */
-	UCHAR	DIR_NTRes;					/* 12 */
-	UCHAR	DIR_CrtTimeTenth;			/* 13		optional */
-	USHORT	DIR_CrtTime;				/* 14		optional */
-	USHORT	DIR_CrtDate;				/* 16		optional */
-	USHORT	DIR_LstAccDate;				/* 18		optional */
-	USHORT	DIR_FstClusHI;				/* 20 */
-	USHORT	DIR_WrtTime;				/* 22		must */
-	USHORT	DIR_WrtDate;				/* 24		must */
-	USHORT	DIR_FstClusLO;				/* 26 */
-	ULONG32	DIR_FileSize;				/* 28 */
+	CHAR		DIR_Name[11];				/* 0 */
+	UCHAR		DIR_Attr;					/* 11 */
+	UCHAR		DIR_NTRes;					/* 12 */
+	UCHAR		DIR_CrtTimeTenth;			/* 13		optional */
+	FAT_TIME	DIR_CrtTime;				/* 14		optional */
+	FAT_DATE	DIR_CrtDate;				/* 16		optional */
+	FAT_DATE	DIR_LstAccDate;				/* 18		optional */
+	USHORT		DIR_FstClusHI;				/* 20 */
+	FAT_TIME	DIR_WrtTime;				/* 22		must */
+	FAT_DATE	DIR_WrtDate;				/* 24		must */
+	USHORT		DIR_FstClusLO;				/* 26 */
+	ULONG32		DIR_FileSize;				/* 28 */
 } FAT32_DIRENTRY, *PFAT32_DIRENTRY;
 #pragma pack()
 
