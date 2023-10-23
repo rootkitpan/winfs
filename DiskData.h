@@ -49,9 +49,11 @@ typedef struct _FAT32_BOOT_SECTOR {
 #pragma pack()
 
 
-
+/* FSI_LeadSig */
 #define FAT32_FSI_LEADSIG		(0x41615252)
+/* FSI_StrucSig */
 #define FAT32_FSI_STRUCSIG		(0x61417272)
+/* FSI_TrailSig */
 #define FAT32_FSI_TRAILSIG		(0xAA550000)
 
 typedef struct _FAT32_FSINFO_SECTOR {
@@ -65,18 +67,55 @@ typedef struct _FAT32_FSINFO_SECTOR {
 } FAT32_FSINFO_SECTOR, * PFAT32_FSINFO_SECTOR;
 
 
+
+
+
+/* DIR_Name[0] */
+#define DIR_FREE				(0xE5)
+#define DIR_FREE_AFTER			(0x00)
+#define DIR_FREE_05				(0x05)
+
+/* DIR_Attr */
+#define ATTR_READ_ONLY			(0x01)
+#define ATTR_HIDDEN				(0x02)
+#define ATTR_SYSTEM				(0x04)
+#define ATTR_VOLUME_ID			(0x08)
+#define ATTR_DIRECTORY			(0x10)
+#define ATTR_ARCHIVE			(0x20)
+#define ATTR_LONG_NAME			(ATTR_READ_ONLY |
+								ATTR_HIDDEN |
+								ATTR_SYSTEM |
+								ATTR_VOLUME_ID)
+								/* 0x0F */
+#define ATTR_MASK				(0x3F)
+
+/*
+ * Data Format
+ * Bits 0-4: Day of month, valid value range 1-31 inclusive.
+ * Bits 5-8: Month of year, 1 = January, valid value range 1-12 inclusive.
+ * Bits 9-15: Count of years from 1980, valid value range 0-127 inclusive (1980-2107).
+ */
+
+/*
+ * Time Format
+ * Bits 0-4: 2-second count, valid value range 0-29 inclusive (0-58 seconds).
+ * Bits 5-10: Minutes, valid value range 0-59 inclusive.
+ * Bits 11-15: Hours, valid value range 0-23 inclusive.
+ * The valid time range is from Midnight 00:00:00 to 23:59:58.
+ */
+
 #pragma pack(1)
 typedef struct _FAT32_DIRENTRY {
 	CHAR	DIR_Name[11];				/* 0 */
 	UCHAR	DIR_Attr;					/* 11 */
 	UCHAR	DIR_NTRes;					/* 12 */
-	UCHAR	DIR_CrtTimeTenth;			/* 13 */
-	USHORT	DIR_CrtTime;				/* 14 */
-	USHORT	DIR_CrtDate;				/* 16 */
-	USHORT	DIR_LstAccDate;				/* 18 */
+	UCHAR	DIR_CrtTimeTenth;			/* 13		optional */
+	USHORT	DIR_CrtTime;				/* 14		optional */
+	USHORT	DIR_CrtDate;				/* 16		optional */
+	USHORT	DIR_LstAccDate;				/* 18		optional */
 	USHORT	DIR_FstClusHI;				/* 20 */
-	USHORT	DIR_WrtTime;				/* 22 */
-	USHORT	DIR_WrtDate;				/* 24 */
+	USHORT	DIR_WrtTime;				/* 22		must */
+	USHORT	DIR_WrtDate;				/* 24		must */
 	USHORT	DIR_FstClusLO;				/* 26 */
 	ULONG32	DIR_FileSize;				/* 28 */
 } FAT32_DIRENTRY, *PFAT32_DIRENTRY;
