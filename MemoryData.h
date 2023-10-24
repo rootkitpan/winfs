@@ -58,6 +58,8 @@ typedef struct _FCB {
 	//FS
 	ULONG FirstClusterOfFile;
 	
+	PFILE_OBJECT DirStreamFile;			/* dir specific */
+	
 } FCB, *PFCB, DCB, *PDCB;
 
 typedef struct _VCB {

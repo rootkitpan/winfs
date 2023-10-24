@@ -250,11 +250,27 @@ NTSTATUS CreateRootDCB(PVCB Vcb)
 		return Status;
 	}
 	Dcb->Header.FileSize.QuadPart = Dcb->Header.AllocationSize.QuadPart;
-	
+	Dcb->Header.ValidDataLength.HighPart = MAXLONG;
+	Dcb->Header.ValidDataLength.LowPart = MAXULONG;
 	
 	Vcb->RootDcb = Dcb;
 	
 	return STATUS_SUCCESS;
+}
+
+
+NTSTATUS OpenRootDirectory(PDCB Dcb)
+{
+	PDEVICE_OBJECT RealDevice = Dcb->Vcb->RealDevice;
+	Dcb->DirStreamFile = IoCreateStreamFileObject(NULL, RealDevice);
+	Dcb->DirStreamFile->Vpb = Dcb->Vcb->Vpb;
+	Dcb->DirStreamFile->FsContext = Dcb;
+	Dcb->DirStreamFile->FsContext2 = NULL;
+	Dcb->DirStreamFile->SectionObjectPointer = &Dcb->SectionObjectPointers;
+	Dcb->DirStreamFile->ReadAccess = TRUE;
+	Dcb->DirStreamFile->WriteAccess = TRUE;
+	Dcb->DirStreamFile->DeleteAccess = TRUE;
+
 }
 
 
