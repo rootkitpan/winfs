@@ -82,12 +82,11 @@ typedef struct _FAT32_FSINFO_SECTOR {
 #define ATTR_VOLUME_ID			(0x08)
 #define ATTR_DIRECTORY			(0x10)
 #define ATTR_ARCHIVE			(0x20)
-#define ATTR_LONG_NAME			(ATTR_READ_ONLY |
-								ATTR_HIDDEN |
-								ATTR_SYSTEM |
+#define ATTR_LONG_NAME			(ATTR_READ_ONLY | \
+								ATTR_HIDDEN | \
+								ATTR_SYSTEM | \
 								ATTR_VOLUME_ID)
 								/* 0x0F */
-#define ATTR_MASK				(0x3F)
 
 /*
  * Data Format
@@ -95,7 +94,7 @@ typedef struct _FAT32_FSINFO_SECTOR {
  * Bits 5-8: Month of year, 1 = January, valid value range 1-12 inclusive.
  * Bits 9-15: Count of years from 1980, valid value range 0-127 inclusive (1980-2107).
  */
-typedef _FAT_DATE {
+typedef struct _FAT_DATE {
 	USHORT	Day : 5;
 	USHORT	Month : 4;
 	USHORT	Year : 7;
@@ -108,7 +107,7 @@ typedef _FAT_DATE {
  * Bits 11-15: Hours, valid value range 0-23 inclusive.
  * The valid time range is from Midnight 00:00:00 to 23:59:58.
  */
-typedef _FAT_TIME {
+typedef struct _FAT_TIME {
 	USHORT	Second : 5;		/* 2-second count */
 	USHORT	Minute : 6;
 	USHORT	Hour : 5;

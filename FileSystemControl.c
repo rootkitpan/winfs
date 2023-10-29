@@ -262,15 +262,36 @@ NTSTATUS CreateRootDCB(PVCB Vcb)
 NTSTATUS OpenRootDirectory(PDCB Dcb)
 {
 	PDEVICE_OBJECT RealDevice = Dcb->Vcb->RealDevice;
-	Dcb->DirStreamFile = IoCreateStreamFileObject(NULL, RealDevice);
-	Dcb->DirStreamFile->Vpb = Dcb->Vcb->Vpb;
-	Dcb->DirStreamFile->FsContext = Dcb;
-	Dcb->DirStreamFile->FsContext2 = NULL;
-	Dcb->DirStreamFile->SectionObjectPointer = &Dcb->SectionObjectPointers;
-	Dcb->DirStreamFile->ReadAccess = TRUE;
-	Dcb->DirStreamFile->WriteAccess = TRUE;
-	Dcb->DirStreamFile->DeleteAccess = TRUE;
+	CC_FILE_SIZES FileSize;
+	NTSTATUS Status = STATUS_SUCCESS;
 
+	try {
+		Dcb->DirStreamFile = IoCreateStreamFileObject(NULL, RealDevice);
+		Dcb->DirStreamFile->Vpb = Dcb->Vcb->Vpb;
+		Dcb->DirStreamFile->FsContext = Dcb;
+		Dcb->DirStreamFile->FsContext2 = NULL;
+		Dcb->DirStreamFile->SectionObjectPointer = &Dcb->SectionObjectPointers;
+		Dcb->DirStreamFile->ReadAccess = TRUE;
+		Dcb->DirStreamFile->WriteAccess = TRUE;
+		Dcb->DirStreamFile->DeleteAccess = TRUE;
+
+		if (Dcb->DirStreamFile->PrivateCacheMap == NULL) {
+			FileSize.AllocationSize.QuadPart = Dcb->Header.AllocationSize.QuadPart;
+			FileSize.FileSize.QuadPart = Dcb->Header.FileSize.QuadPart;
+			FileSize.ValidDataLength.QuadPart = Dcb->Header.ValidDataLength.QuadPart;
+
+			CcInitializeCacheMap(Dcb->DirStreamFile,
+				&FileSize,
+				TRUE,
+				&FsData.CacheManagerNoOpCallbacks,
+				Dcb);
+		}
+	} except(EXCEPTION_EXECUTE_HANDLER) {
+		Status = GetExceptionCode();
+		DbgPrint("[Fat32] %s abnormal, status = 0x%X\n", __func__, Status);
+	}
+
+	return Status;
 }
 
 
@@ -404,7 +425,13 @@ NTSTATUS Fat32MountVolume(
 		DbgPrint("[Fat32] Create Root DCB error\n");
 		goto fail_exit;
 	}
-	
+
+	Status = OpenRootDirectory(Vcb->RootDcb);
+	if (Status != STATUS_SUCCESS) {
+		DbgPrint("[Fat32] Create Root DCB error\n");
+		goto fail_exit;
+	}
+
 	// TODO
 	// VolumeLabel
 	// Vpb->VolumeLabel
@@ -427,8 +454,27 @@ fail_exit:
 	if(Status != STATUS_SUCCESS){
 		if(Bcb){
 			CcUnpinData(Bcb);
+			Bcb = NULL;
 		}
+
 		if(Vcb){
+
+			if (Vcb->RootDcb) {
+
+				if (Vcb->RootDcb->DirStreamFile) {
+					LARGE_INTEGER FatLargeZero = { 0,0 };
+					CcUninitializeCacheMap(Vcb->RootDcb->DirStreamFile, &FatLargeZero, NULL);
+					FsRtlTeardownPerStreamContexts(&Vcb->RootDcb->Header);
+					ObDereferenceObject(Vcb->RootDcb->DirStreamFile);
+					Vcb->RootDcb->DirStreamFile = NULL;
+				}
+
+				ExDeleteResourceLite(&Vcb->RootDcb->Resource);
+				ExDeleteResourceLite(&Vcb->RootDcb->PagingIoResource);
+				ExFreePool(Vcb->RootDcb);
+				Vcb->RootDcb = NULL;
+			}
+
 			if(Vcb->VirtualVolumeFile){
 				LARGE_INTEGER FatLargeZero = { 0,0 };
 				CcUninitializeCacheMap(Vcb->VirtualVolumeFile, &FatLargeZero, NULL);
