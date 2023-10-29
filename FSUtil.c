@@ -40,9 +40,25 @@ NTSTATUS DecodeFileObject (
 		break;
 		
 	case FAT_NTC_DCB:
+		if (FsContext2 == NULL) {
+			*Type = DIRETORY_STREAM_FILE;
+			*Vcb = ((PDCB)FsContext)->Vcb;
+			*Fcb = FsContext;
+			*Ccb = NULL;
+		}
+		else {
+			*Type = USER_DIRECTORY;
+			*Vcb = ((PDCB)FsContext)->Vcb;
+			*Fcb = FsContext;
+			*Ccb = FsContext2;
+		}
 		break;
 		
 	case FAT_NTC_FCB:
+		*Type = USER_FILE;
+		*Vcb = ((PDCB)FsContext)->Vcb;
+		*Fcb = FsContext;
+		*Ccb = FsContext2;
 		break;
 		
 	default:
