@@ -176,7 +176,7 @@ NTSTATUS DriverEntry(
 		DbgPrint("[Fat32] IoCreateDevice failed, status = 0x%08X\n", Status);
 		return Status;
 	}
-	DbgPrint("[Fat32] CDO = %p\n", gCDO);
+	//DbgPrint("[Fat32] CDO = %p\n", gCDO);
 
 
 

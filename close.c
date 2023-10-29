@@ -7,15 +7,17 @@ NTSTATUS DispatchClose(
 {
 	UNREFERENCED_PARAMETER(DeviceObject);
 
-	DbgPrint("[Fat32] %s in\n", __func__);
+	DbgPrint("[Fat32] IRP_MJ_CLOSE in\n");
 
 	FsRtlEnterFileSystem();
 
 	FsRtlExitFileSystem();
 
-	Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
+	Irp->IoStatus.Status = STATUS_SUCCESS;
 	Irp->IoStatus.Information = 0;
 	IoCompleteRequest(Irp, IO_NO_INCREMENT);
+
+	DbgPrint("[Fat32] IRP_MJ_CLOSE out\n");
 
 	return STATUS_UNSUCCESSFUL;
 }

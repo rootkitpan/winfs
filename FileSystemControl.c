@@ -294,6 +294,88 @@ NTSTATUS OpenRootDirectory(PDCB Dcb)
 	return Status;
 }
 
+NTSTATUS ReadDirectory(
+	PDCB Dcb,
+	LONGLONG ByteOffset,
+	PFAT32_DIRENTRY *entry,
+	PVOID *Bcb)
+{
+	LARGE_INTEGER FileOffset;
+	BOOLEAN bRet;
+	NTSTATUS Status = STATUS_SUCCESS;
+
+	if (ByteOffset >= Dcb->Header.AllocationSize.QuadPart) {
+		*entry = NULL;
+		return STATUS_SUCCESS;
+	}
+
+	try {
+		FileOffset.QuadPart = ByteOffset;
+
+		bRet = CcMapData(
+			Dcb->DirStreamFile, &FileOffset, sizeof(FAT32_DIRENTRY), MAP_WAIT, Bcb, entry);
+		if (bRet != TRUE) {
+			DbgPrint("[Fat32] CcMapData failed\n");
+			Status = STATUS_UNSUCCESSFUL;
+		}
+	} except(EXCEPTION_EXECUTE_HANDLER) {
+		Status = GetExceptionCode();
+		DbgPrint("[Fat32] CcMapData abnormal, Status = 0x%08X\n", Status);
+	}
+
+	return Status;
+}
+
+
+NTSTATUS GetVolumeLabel(PDCB Dcb)
+{
+	PFAT32_DIRENTRY DirEntry;
+	NTSTATUS Status;
+	LONGLONG ByteOffset = 0;
+	PVOID Bcb = NULL;
+
+	while (1) {
+		Bcb = NULL;
+		Status = ReadDirectory(Dcb, ByteOffset, &DirEntry, &Bcb);
+		if (Status != STATUS_SUCCESS) {
+			DbgPrint("[Fat32] ReadDirectory error, Status = 0x%08X\n", Status);
+			break;
+		}
+
+		if (DirEntry == NULL) {
+			Status = STATUS_UNSUCCESSFUL;
+			DbgPrint("[Fat32] ReadDirectory END\n");
+			break;
+		}
+
+		if (DirEntry->DIR_Name[0] == DIR_FREE_AFTER) {
+			Status = STATUS_UNSUCCESSFUL;
+			DbgPrint("[Fat32] ReadDirectory no more dir after\n");
+			break;
+		}
+
+		DbgPrint("[Fat32] DIRENTRY at %lld\n", ByteOffset);
+		DbgPrint("[Fat32]   DIR_Attr = 0x%02X\n", DirEntry->DIR_Attr);
+
+
+		if (DirEntry->DIR_Attr == ATTR_VOLUME_ID) {
+			DbgPrint("[Fat32] Find Volume ID \n");
+			break;
+		}
+
+		ByteOffset += sizeof(FAT32_DIRENTRY);
+
+		CcUnpinData(Bcb);
+	}
+
+	if (Bcb) {
+		CcUnpinData(Bcb);
+		Bcb = NULL;
+	}
+
+	return Status;
+
+}
 
 /*
 	1. create VDO
@@ -340,7 +422,7 @@ NTSTATUS Fat32MountVolume(
 		DbgPrint("[Fat32] IoCreateDevice failed, 0x%08x\n", Status);
 		goto fail_exit;
 	}
-	DbgPrint("[Fat32] VDO = %p\n", VDO);
+	//DbgPrint("[Fat32] VDO = %p\n", VDO);
 	
 	if (TargetDeviceObject->AlignmentRequirement > VDO->AlignmentRequirement) {
 		VDO->AlignmentRequirement = TargetDeviceObject->AlignmentRequirement;
@@ -431,6 +513,8 @@ NTSTATUS Fat32MountVolume(
 		DbgPrint("[Fat32] Create Root DCB error\n");
 		goto fail_exit;
 	}
+
+	Status = GetVolumeLabel(Vcb->RootDcb);
 
 	// TODO
 	// VolumeLabel
@@ -543,6 +627,8 @@ NTSTATUS DispatchFileSystemControl(
 	PIO_STACK_LOCATION IrpSp = NULL;
 	BOOLEAN TopLevel;
 	
+	DbgPrint("[Fat32] IRP_MJ_FILE_SYSTEM_CONTROL in\n");
+
 	FsRtlEnterFileSystem();
 	
 	if ( IoGetTopLevelIrp() == NULL ) {
@@ -553,8 +639,6 @@ NTSTATUS DispatchFileSystemControl(
 	}
 
 	IrpSp = IoGetCurrentIrpStackLocation(Irp);
-
-	DbgPrint("[Fat32] %s in DeviceObject = %p\n", __func__, DeviceObject);
 	
 
 	switch (IrpSp->MinorFunction) {

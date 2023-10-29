@@ -11,7 +11,7 @@ NTSTATUS DispatchCleanup(
 	
 	UNREFERENCED_PARAMETER(DeviceObject);
 
-	DbgPrint("[Fat32] %s %p in\n", __func__, DeviceObject);
+	DbgPrint("[Fat32] IRP_MJ_CLEANUP in\n");
 
 	if (DeviceObject == gCDO) {
 		DbgPrint("[Fat32] %s Our CDO\n", __func__);
@@ -21,7 +21,7 @@ NTSTATUS DispatchCleanup(
 
 		IoCompleteRequest(Irp, IO_DISK_INCREMENT);
 
-		DbgPrint("[Fat32] %s out\n", __func__);
+		DbgPrint("[Fat32] IRP_MJ_CLEANUP out\n");
 
 		return STATUS_SUCCESS;
 	}
@@ -61,6 +61,7 @@ NTSTATUS DispatchCleanup(
 			IoCompleteRequest(Irp, IO_NO_INCREMENT);
 			
 		} else {
+			DbgPrint("[Fat32] Type = %d \n", Type);
 			Irp->IoStatus.Status = STATUS_SUCCESS;
 			Irp->IoStatus.Information = 0;
 			IoCompleteRequest(Irp, IO_NO_INCREMENT);
@@ -75,6 +76,8 @@ NTSTATUS DispatchCleanup(
 	}
 	
 	FsRtlExitFileSystem();
+
+	DbgPrint("[Fat32] IRP_MJ_CLEANUP out\n");
 
 	return STATUS_SUCCESS;
 }

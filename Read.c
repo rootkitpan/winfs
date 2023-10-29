@@ -47,7 +47,7 @@ NTSTATUS DispatchReadCommon(PIRP Irp)
 	ULONG ByteCount = IrpSp->Parameters.Read.Length;
 	NTSTATUS Status;
 
-	DbgPrint("[Fat32] %s NonCachedIo=%d  PagingIo=%d StartingByte=%lld ByteCount=%lu \n", __func__,
+	DbgPrint("[Fat32][Read] %s NonCachedIo=%d  PagingIo=%d StartingByte=%lld ByteCount=%lu \n", __func__,
 		NonCachedIo, PagingIo, StartingByte, ByteCount);
 
 	DecodeFileObject(FileObject, &Type, &Vcb, &Fcb, &Ccb);
@@ -56,7 +56,7 @@ NTSTATUS DispatchReadCommon(PIRP Irp)
 		PIO_STACK_LOCATION NextIrpSp;
 		PCOMPLETE_CONTEXT Context;
 		
-		DbgPrint("[Fat32] Type of read is virtual volume file\n");
+		DbgPrint("[Fat32][Read] Type of read is virtual volume file\n");
 
 		Context = FsRtlAllocatePoolWithTag( NonPagedPool, sizeof(COMPLETE_CONTEXT), COMPLETE_CONTEXT_MEMFLAG);
 		KeInitializeEvent(&Context->SyncEvent, NotificationEvent, FALSE);
@@ -91,7 +91,7 @@ NTSTATUS DispatchReadCommon(PIRP Irp)
 #endif
 		
 		Status = IoCallDriver(Vcb->TargetDeviceObject, Irp);
-		DbgPrint("[Fat32] IoCallDriver Status = 0x%08X\n", Status);
+		//DbgPrint("[Fat32] IoCallDriver Status = 0x%08X\n", Status);
 		// STATUS_PENDING = 0x00000103
 		
 		KeWaitForSingleObject(
@@ -101,8 +101,7 @@ NTSTATUS DispatchReadCommon(PIRP Irp)
 		KeClearEvent(&Context->SyncEvent);
 		
 		if (Irp->IoStatus.Status == STATUS_SUCCESS) {
-			DbgPrint("[Fat32] Read OK\n");
-			FileObject->CurrentByteOffset.QuadPart = StartingByte + Irp->IoStatus.Information;
+			//FileObject->CurrentByteOffset.QuadPart = StartingByte + Irp->IoStatus.Information;
 		}
 		
 		IoCompleteRequest( Irp, IO_DISK_INCREMENT );
@@ -110,7 +109,7 @@ NTSTATUS DispatchReadCommon(PIRP Irp)
 		return Irp->IoStatus.Status;
 		
 	} else {
-		DbgPrint("[Fat32] unknown Type of read\n");
+		DbgPrint("[Fat32][Read] unknown Type of read\n");
 		Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
 		Irp->IoStatus.Information = 0;
 		IoCompleteRequest(Irp, IO_DISK_INCREMENT);
@@ -132,7 +131,7 @@ NTSTATUS DispatchRead(
 
 	UNREFERENCED_PARAMETER(DeviceObject);
 
-	DbgPrint("[Fat32] %s %p in\n", __func__, DeviceObject);
+	DbgPrint("[Fat32][Read] IRP_MJ_READ in\n");
 
 	FsRtlEnterFileSystem();
 
@@ -151,6 +150,8 @@ NTSTATUS DispatchRead(
 	}
 
 	FsRtlExitFileSystem();
+
+	DbgPrint("[Fat32][Read] IRP_MJ_READ out\n");
 
 	return Status;
 }
