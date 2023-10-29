@@ -107,9 +107,44 @@ NTSTATUS DispatchReadCommon(PIRP Irp)
 		IoCompleteRequest( Irp, IO_DISK_INCREMENT );
 
 		return Irp->IoStatus.Status;
-		
+	} 
+	else if (Type == DIRETORY_STREAM_FILE) {
+		DbgPrint("[Fat32][Read] Type of read is directory stream file\n");
+
+		Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
+		Irp->IoStatus.Information = 0;
+		IoCompleteRequest(Irp, IO_DISK_INCREMENT);
+
+		return Irp->IoStatus.Status;
+	}
+	else if (Type == USER_FILE) {
+		DbgPrint("[Fat32][Read] Type of read is user file\n");
+
+		Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
+		Irp->IoStatus.Information = 0;
+		IoCompleteRequest(Irp, IO_DISK_INCREMENT);
+
+		return Irp->IoStatus.Status;
+	}
+	else if (Type == USER_DIRECTORY) {
+		DbgPrint("[Fat32][Read] Type of read is user directory\n");
+
+		Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
+		Irp->IoStatus.Information = 0;
+		IoCompleteRequest(Irp, IO_DISK_INCREMENT);
+
+		return Irp->IoStatus.Status;
+	}
+	else if (Type == USER_VOLUME) {
+		DbgPrint("[Fat32][Read] Type of read is user volume\n");
+
+		Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
+		Irp->IoStatus.Information = 0;
+		IoCompleteRequest(Irp, IO_DISK_INCREMENT);
+
+		return Irp->IoStatus.Status;
 	} else {
-		DbgPrint("[Fat32][Read] unknown Type of read\n");
+		DbgPrint("[Fat32][Read] unknown Type of read, Type = %d\n", Type);
 		Irp->IoStatus.Status = STATUS_UNSUCCESSFUL;
 		Irp->IoStatus.Information = 0;
 		IoCompleteRequest(Irp, IO_DISK_INCREMENT);
