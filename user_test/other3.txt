@@ -1,0 +1,38 @@
+
+
+【寻仙昆仑】	99
+N		43
+R		20
+SR		15
+
+SSR		10
+UR		6
+SER		4
+UTR		1
+
+
+【风雷骤起】	52
+N		20
+R		12
+SR		6
+
+SSR		5
+UR		4
+SER		4
+UTR		1
+
+
+【回梦仙游】	97
+N		37
+R		24
+SR		16
+
+SSR		6
+UR		5
+SER		4
+UTR		2
+ESR		3
+
+
+
+
