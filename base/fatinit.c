@@ -1,43 +1,3 @@
-/*++
-
-Copyright (c) 1989-2000 Microsoft Corporation
-
-Module Name:
-
-    FatInit.c
-
-Abstract:
-
-    This module implements the DRIVER_INITIALIZATION routine for Fat
-
-
---*/
-
-#include "FatProcs.h"
-
-DRIVER_INITIALIZE DriverEntry;
-
-NTSTATUS
-DriverEntry(
-    _In_ PDRIVER_OBJECT DriverObject,
-    _In_ PUNICODE_STRING RegistryPath
-    );
-
-_Function_class_(DRIVER_UNLOAD)
-VOID
-FatUnload(
-    _In_ _Unreferenced_parameter_ PDRIVER_OBJECT DriverObject
-    );
-
-NTSTATUS
-FatGetCompatibilityModeValue(
-    IN PUNICODE_STRING ValueName,
-    IN OUT PULONG Value
-    );
-
-BOOLEAN
-FatIsFujitsuFMR (
-    );
 
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(INIT, DriverEntry)
@@ -68,26 +28,6 @@ DriverEntry(
     _In_ PDRIVER_OBJECT DriverObject,
     _In_ PUNICODE_STRING RegistryPath
     )
-
-/*++
-
-Routine Description:
-
-    This is the initialization routine for the Fat file system
-    device driver.  This routine creates the device object for the FileSystem
-    device and performs all other driver initialization.
-
-Arguments:
-
-    DriverObject - Pointer to driver object created by the system.
-
-Return Value:
-
-    NTSTATUS - The function value is the final status from the initialization
-        operation.
-
---*/
-
 {
     USHORT MaxDepth;
     NTSTATUS Status;
@@ -112,10 +52,6 @@ Return Value:
                              FALSE,
                              &FatDiskFileSystemDeviceObject );
 
-    if (!NT_SUCCESS( Status )) {
-        return Status;
-    }
-
     //
     // Create the device object for "cdroms".
     //
@@ -129,15 +65,6 @@ Return Value:
                              FALSE,
                              &FatCdromFileSystemDeviceObject );
 
-    if (!NT_SUCCESS( Status )) {
-        IoDeleteDevice( FatDiskFileSystemDeviceObject);
-        return Status;
-    }
-
-#pragma prefast( push )
-#pragma prefast( disable:28155, "these are all correct" )
-#pragma prefast( disable:28169, "these are all correct" )
-#pragma prefast( disable:28175, "this is a filesystem, touching FastIoDispatch is allowed" )
 
     DriverObject->DriverUnload = FatUnload;
 
@@ -148,43 +75,50 @@ Return Value:
     //  set up for Direct I/O by hand.
     //
 
-    //
-    // Initialize the driver object with this driver's entry points.
-    //
 
-    DriverObject->MajorFunction[IRP_MJ_CREATE]                   = (PDRIVER_DISPATCH)FatFsdCreate;
-    DriverObject->MajorFunction[IRP_MJ_CLOSE]                    = (PDRIVER_DISPATCH)FatFsdClose;
-    DriverObject->MajorFunction[IRP_MJ_READ]                     = (PDRIVER_DISPATCH)FatFsdRead;
-    DriverObject->MajorFunction[IRP_MJ_WRITE]                    = (PDRIVER_DISPATCH)FatFsdWrite;
-    DriverObject->MajorFunction[IRP_MJ_QUERY_INFORMATION]        = (PDRIVER_DISPATCH)FatFsdQueryInformation;
-    DriverObject->MajorFunction[IRP_MJ_SET_INFORMATION]          = (PDRIVER_DISPATCH)FatFsdSetInformation;
-    DriverObject->MajorFunction[IRP_MJ_QUERY_EA]                 = (PDRIVER_DISPATCH)FatFsdQueryEa;
-    DriverObject->MajorFunction[IRP_MJ_SET_EA]                   = (PDRIVER_DISPATCH)FatFsdSetEa;
-    DriverObject->MajorFunction[IRP_MJ_FLUSH_BUFFERS]            = (PDRIVER_DISPATCH)FatFsdFlushBuffers;
+    DriverObject->MajorFunction[IRP_MJ_CREATE] = (PDRIVER_DISPATCH)FatFsdCreate;
+	IRP_MJ_CREATE_NAMED_PIPE
+    DriverObject->MajorFunction[IRP_MJ_CLOSE] = (PDRIVER_DISPATCH)FatFsdClose;
+    DriverObject->MajorFunction[IRP_MJ_READ] = (PDRIVER_DISPATCH)FatFsdRead;
+    DriverObject->MajorFunction[IRP_MJ_WRITE] = (PDRIVER_DISPATCH)FatFsdWrite;
+    DriverObject->MajorFunction[IRP_MJ_QUERY_INFORMATION] = (PDRIVER_DISPATCH)FatFsdQueryInformation;
+    DriverObject->MajorFunction[IRP_MJ_SET_INFORMATION] = (PDRIVER_DISPATCH)FatFsdSetInformation;
+    DriverObject->MajorFunction[IRP_MJ_QUERY_EA] = (PDRIVER_DISPATCH)FatFsdQueryEa;
+    DriverObject->MajorFunction[IRP_MJ_SET_EA] = (PDRIVER_DISPATCH)FatFsdSetEa;
+    DriverObject->MajorFunction[IRP_MJ_FLUSH_BUFFERS] = (PDRIVER_DISPATCH)FatFsdFlushBuffers;
     DriverObject->MajorFunction[IRP_MJ_QUERY_VOLUME_INFORMATION] = (PDRIVER_DISPATCH)FatFsdQueryVolumeInformation;
-    DriverObject->MajorFunction[IRP_MJ_SET_VOLUME_INFORMATION]   = (PDRIVER_DISPATCH)FatFsdSetVolumeInformation;
-    DriverObject->MajorFunction[IRP_MJ_CLEANUP]                  = (PDRIVER_DISPATCH)FatFsdCleanup;
-    DriverObject->MajorFunction[IRP_MJ_DIRECTORY_CONTROL]        = (PDRIVER_DISPATCH)FatFsdDirectoryControl;
-    DriverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL]      = (PDRIVER_DISPATCH)FatFsdFileSystemControl;
-    DriverObject->MajorFunction[IRP_MJ_LOCK_CONTROL]             = (PDRIVER_DISPATCH)FatFsdLockControl;
-    DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL]           = (PDRIVER_DISPATCH)FatFsdDeviceControl;
-    DriverObject->MajorFunction[IRP_MJ_SHUTDOWN]                 = (PDRIVER_DISPATCH)FatFsdShutdown;
-    DriverObject->MajorFunction[IRP_MJ_PNP]                      = (PDRIVER_DISPATCH)FatFsdPnp;
+    DriverObject->MajorFunction[IRP_MJ_SET_VOLUME_INFORMATION] = (PDRIVER_DISPATCH)FatFsdSetVolumeInformation;
+	DriverObject->MajorFunction[IRP_MJ_DIRECTORY_CONTROL] = (PDRIVER_DISPATCH)FatFsdDirectoryControl;
+	DriverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = (PDRIVER_DISPATCH)FatFsdFileSystemControl;
+	DriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = (PDRIVER_DISPATCH)FatFsdDeviceControl;
+	IRP_MJ_INTERNAL_DEVICE_CONTROL
+	DriverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)FatFsdShutdown;
+	DriverObject->MajorFunction[IRP_MJ_LOCK_CONTROL] = (PDRIVER_DISPATCH)FatFsdLockControl;
+    DriverObject->MajorFunction[IRP_MJ_CLEANUP] = (PDRIVER_DISPATCH)FatFsdCleanup;
+    IRP_MJ_CREATE_MAILSLOT
+	IRP_MJ_QUERY_SECURITY
+	IRP_MJ_SET_SECURITY
+	IRP_MJ_POWER
+	IRP_MJ_SYSTEM_CONTROL
+	IRP_MJ_DEVICE_CHANGE
+	IRP_MJ_QUERY_QUOTA
+	IRP_MJ_SET_QUOTA
+    DriverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)FatFsdPnp;
 
     DriverObject->FastIoDispatch = &FatFastIoDispatch;
 
     RtlZeroMemory(&FatFastIoDispatch, sizeof(FatFastIoDispatch));
 
-    FatFastIoDispatch.SizeOfFastIoDispatch =    sizeof(FAST_IO_DISPATCH);
-    FatFastIoDispatch.FastIoCheckIfPossible =   FatFastIoCheckIfPossible;  //  CheckForFastIo
-    FatFastIoDispatch.FastIoRead =              FsRtlCopyRead;             //  Read
-    FatFastIoDispatch.FastIoWrite =             FsRtlCopyWrite;            //  Write
-    FatFastIoDispatch.FastIoQueryBasicInfo =    FatFastQueryBasicInfo;     //  QueryBasicInfo
+    FatFastIoDispatch.SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
+    FatFastIoDispatch.FastIoCheckIfPossible = FatFastIoCheckIfPossible;  //  CheckForFastIo
+    FatFastIoDispatch.FastIoRead = FsRtlCopyRead;             //  Read
+    FatFastIoDispatch.FastIoWrite = FsRtlCopyWrite;            //  Write
+    FatFastIoDispatch.FastIoQueryBasicInfo = FatFastQueryBasicInfo;     //  QueryBasicInfo
     FatFastIoDispatch.FastIoQueryStandardInfo = FatFastQueryStdInfo;       //  QueryStandardInfo
-    FatFastIoDispatch.FastIoLock =              FatFastLock;               //  Lock
-    FatFastIoDispatch.FastIoUnlockSingle =      FatFastUnlockSingle;       //  UnlockSingle
-    FatFastIoDispatch.FastIoUnlockAll =         FatFastUnlockAll;          //  UnlockAll
-    FatFastIoDispatch.FastIoUnlockAllByKey =    FatFastUnlockAllByKey;     //  UnlockAllByKey
+    FatFastIoDispatch.FastIoLock = FatFastLock;               //  Lock
+    FatFastIoDispatch.FastIoUnlockSingle = FatFastUnlockSingle;       //  UnlockSingle
+    FatFastIoDispatch.FastIoUnlockAll = FatFastUnlockAll;          //  UnlockAll
+    FatFastIoDispatch.FastIoUnlockAllByKey = FatFastUnlockAllByKey;     //  UnlockAllByKey
     FatFastIoDispatch.FastIoQueryNetworkOpenInfo = FatFastQueryNetworkOpenInfo;
     FatFastIoDispatch.AcquireForCcFlush =       FatAcquireForCcFlush;
     FatFastIoDispatch.ReleaseForCcFlush =       FatReleaseForCcFlush;
@@ -193,7 +127,6 @@ Return Value:
     FatFastIoDispatch.PrepareMdlWrite =         FsRtlPrepareMdlWriteDev;
     FatFastIoDispatch.MdlWriteComplete =        FsRtlMdlWriteCompleteDev;
 
-#pragma prefast( pop )
 
     //
     //  Initialize the filter callbacks we use.
@@ -243,22 +176,11 @@ Return Value:
 
     FatData.FatCloseItem = IoAllocateWorkItem( FatDiskFileSystemDeviceObject);
 
-    if (FatData.FatCloseItem == NULL) {
-        IoDeleteDevice (FatDiskFileSystemDeviceObject);
-        IoDeleteDevice (FatCdromFileSystemDeviceObject);
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-
     //
     //  Allocate the zero page
     //
 
     FatData.ZeroPage = ExAllocatePoolZero( NonPagedPoolNx, PAGE_SIZE, 'ZtaF' );
-    if (FatData.ZeroPage == NULL) {
-        IoDeleteDevice (FatDiskFileSystemDeviceObject);
-        IoDeleteDevice (FatCdromFileSystemDeviceObject);
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
 
 
     //
@@ -269,27 +191,8 @@ Return Value:
 
     KeInitializeSpinLock( &FatData.GeneralSpinLock );
 
-    switch ( MmQuerySystemSize() ) {
-
-    case MmSmallSystem:
-
-        MaxDepth = 4;
-        FatMaxDelayedCloseCount = FAT_MAX_DELAYED_CLOSES;
-        break;
-
-    case MmMediumSystem:
-
-        MaxDepth = 8;
-        FatMaxDelayedCloseCount = 4 * FAT_MAX_DELAYED_CLOSES;
-        break;
-
-    case MmLargeSystem:
-    default:
-
-        MaxDepth = 16;
-        FatMaxDelayedCloseCount = 16 * FAT_MAX_DELAYED_CLOSES;
-        break;
-    }
+    MaxDepth = 16;
+    FatMaxDelayedCloseCount = 16 * FAT_MAX_DELAYED_CLOSES;
 
 
     //
@@ -317,11 +220,7 @@ Return Value:
     //  running.
     //
 
-#if (NTDDI_VERSION >= NTDDI_VISTA)
     FatData.NumberProcessors = KeQueryActiveProcessorCount( NULL );
-#else
-    FatData.NumberProcessors = KeNumberProcessors;
-#endif
 
 
     //
@@ -334,14 +233,7 @@ Return Value:
 
     Status = FatGetCompatibilityModeValue( &ValueName, &Value );
 
-    if (NT_SUCCESS(Status) && FlagOn(Value, 1)) {
-
-        FatData.ChicagoMode = FALSE;
-
-    } else {
-
-        FatData.ChicagoMode = TRUE;
-    }
+    FatData.ChicagoMode = TRUE;
 
     //
     //  Read the registry to determine if we are going to generate LFNs
@@ -354,14 +246,8 @@ Return Value:
 
     Status = FatGetCompatibilityModeValue( &ValueName, &Value );
 
-    if (NT_SUCCESS(Status) && FlagOn(Value, 1)) {
+    FatData.CodePageInvariant = TRUE;
 
-        FatData.CodePageInvariant = FALSE;
-
-    } else {
-
-        FatData.CodePageInvariant = TRUE;
-    }
 
     //
     //  Initialize our global resource and fire up the lookaside lists.
