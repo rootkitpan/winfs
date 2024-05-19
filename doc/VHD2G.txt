@@ -1,0 +1,88 @@
+[ 0000 0000 , 8000 0200 )
+
+MBR
+000 01BE - 0000 01CD	MBR分区表中第一个分区
+
+00	不可引导
+02 03 00	其实CHS
+0C	分区类型
+B4 70 04	结束CHS
+80 00 00 00	分区起始LBA		***
+00 E8 3F 00	扇区个数		***
+
+分区起始位置	0001 0000
+大小			7FD0 0000
+[ 0001 0000 - 7FD1 0000 )
+
+
+
+=================================================
+
+
+第一分区	[ 0001 0000 - 7FD1 0000 )
+Boot Sector
+00-02		EB 58 90 --> 00 00 00
+
+
+DriverEntry
+	CDO名字调整
+
+FatIsBootSectorFat
+	前三字节判断  != 0x00
+
+
+
+[Fat32] MmLargeSystem
+[Fat32] ChicagoMode = 1
+[Fat32] CodePageInvariant = 1
+[Fat32] FujitsuFMR = 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[Fat32] IRP_MN_MOUNT_VOLUME in
+[Fat32] FatIsBootSectorFat in
+[Fat32] IRP_MN_MOUNT_VOLUME in
+[Fat32] FILE_REMOVABLE_MEDIA
+[Fat32] IRP_MN_MOUNT_VOLUME out Status = 0xC0000013		// STATUS_NO_MEDIA_IN_DEVICE
+[Fat32] DoARemount = 0
+[Fat32] IRP_MN_MOUNT_VOLUME out Status = 0x00000000
+[Fat32] IRP_MN_USER_FS_REQUEST
+
+
+
+
+
+
+
+
+
+
+
